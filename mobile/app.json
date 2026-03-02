@@ -1,0 +1,24 @@
+{
+  "expo": {
+    "name": "Health Erino",
+    "slug": "health-erino",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "scheme": "health-erino",
+    "userInterfaceStyle": "automatic",
+    "splash": { "backgroundColor": "#ffffff" },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.health-erino.app",
+      "infoPlist": {
+        "NSMicrophoneUsageDescription": "La app usa el micrófono para consultar por voz sobre tus medicamentos.",
+        "NSSpeechRecognitionUsageDescription": "La app usa el reconocimiento de voz para entender tus preguntas."
+      }
+    },
+    "android": {
+      "package": "com.health_erino.app",
+      "permissions": ["android.permission.RECORD_AUDIO"]
+    },
+    "plugins": ["expo-router", "expo-speech-recognition"]
+  }
+}

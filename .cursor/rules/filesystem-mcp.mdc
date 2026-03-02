@@ -1,0 +1,16 @@
+---
+description: Cuándo usar Filesystem MCP para operaciones multiarchivo
+globs: "**/*"
+alwaysApply: false
+---
+
+# Filesystem MCP
+
+Usar las herramientas de Filesystem MCP cuando:
+
+- Leer o escribir varios archivos a la vez (`mcp_filesystem_read_multiple_files`, `mcp_filesystem_write_file`).
+- Necesitar un árbol de directorios o listado con tamaños (`mcp_filesystem_directory_tree`, `mcp_filesystem_list_directory_with_sizes`).
+- Buscar archivos por patrón (`mcp_filesystem_search_files` con pattern glob).
+- Mover o renombrar archivos (`mcp_filesystem_move_file`).
+
+Para operaciones en un solo archivo o búsquedas en código, suele ser más directo usar las herramientas nativas de Cursor (Read, Write, Grep, Glob).

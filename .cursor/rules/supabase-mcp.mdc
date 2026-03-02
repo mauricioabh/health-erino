@@ -1,0 +1,30 @@
+---
+description: Supabase MCP (este proyecto usa Neon + Clerk; esta regla es para otros proyectos o referencia)
+globs: "**/*"
+alwaysApply: false
+---
+
+# Supabase MCP
+
+Usar las herramientas de Supabase MCP cuando:
+
+- Crear o listar proyectos de Supabase.
+- Aplicar migraciones (DDL) o ejecutar SQL de consulta.
+- Listar tablas, ver logs o asesores de seguridad/rendimiento.
+
+## Crear proyecto en Supabase
+
+1. Listar organizaciones: `mcp_supabase_list_organizations`.
+2. Obtener coste: `mcp_supabase_get_cost` (type: project, organization_id).
+3. Confirmar coste: `mcp_supabase_confirm_cost` (type, recurrence, amount) y usar el `confirm_cost_id` devuelto.
+4. Crear proyecto: `mcp_supabase_create_project` (name, region, organization_id, confirm_cost_id).
+
+Alternativa: crear el proyecto desde el Dashboard de Supabase y enlazar con Supabase CLI: `supabase link --project-ref <ref>`.
+
+## Base de datos
+
+- Aplicar migraciones (DDL): `mcp_supabase_apply_migration` (project_id, name, query).
+- Consultas SQL: `mcp_supabase_execute_sql` (project_id, query).
+- Listar tablas: `mcp_supabase_list_tables` (project_id, schemas).
+
+Las migraciones del proyecto están en `supabase/migrations/`. La tabla `medicamentos` y las políticas RLS se crean con la migración inicial.

@@ -1,0 +1,29 @@
+---
+description: Operaciones (MCP/CLI) y consistencia (migraciones, env, types)
+globs: "**/*"
+alwaysApply: true
+---
+
+# Operaciones y consistencia
+
+## Stack actual (Health Erino)
+
+- Plan y stack detallado: `docs/STACK.md`. Resumen para el agente: `AGENTS.md`.
+- **BD**: Neon (PostgreSQL). Schema y migraciones en `neon/migrations/` y `neon/SCHEMA.md`. Cliente en `web/lib/db/neon.ts`.
+- **Web dev**: `npm run dev` usa Turbopack (`next dev --turbo`).
+- **Auth**: Clerk. Middleware y rutas protegidas usan `@clerk/nextjs/server` (`auth()`, `clerkMiddleware`).
+- Si la tarea involucra **deploy** o settings en **Vercel**, usar **Vercel MCP** o Vercel CLI.
+- Si involucra **repos/PRs/issues** en **GitHub**, usar **GitHub MCP** o `gh`.
+- Para operaciones multiarchivo, usar **Filesystem MCP** cuando sea más eficiente.
+
+## Migraciones y schema
+
+- Fuente de verdad del schema: `neon/migrations/001_medicamentos.sql` y `neon/SCHEMA.md`.
+- Mantener `web/lib/types.ts` (y tipos en `lib/db/neon.ts`) consistentes con la tabla `medicamentos`.
+- Si el schema cambia, actualizar migración, types y `neon/SCHEMA.md`.
+
+## Variables de entorno
+
+- `web/.env.local`: `DATABASE_URL` (Neon), Clerk keys, `GOOGLE_GENERATIVE_AI_API_KEY`, `GOOGLE_SHEET_CSV_URL`.
+- En Vercel, configurar las mismas variables.
+- En mobile: `EXPO_PUBLIC_APP_URL` para la URL del backend Next.js.

@@ -1,0 +1,10 @@
+{
+  "name": "health-erino",
+  "private": true,
+  "description": "Gestión de medicamentos - Web (Next.js) + Mobile (Expo)",
+  "scripts": {
+    "web": "npm run dev --prefix web",
+    "mobile": "npm run start --prefix mobile",
+    "build:web": "npm run build --prefix web"
+  }
+}

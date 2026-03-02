@@ -1,0 +1,26 @@
+---
+description: Cuándo y cómo usar GitHub MCP para repos, PRs, issues y búsqueda
+globs: "**/*"
+alwaysApply: false
+---
+
+# GitHub MCP
+
+Usar las herramientas de GitHub MCP cuando:
+
+- Crear o gestionar el repositorio del proyecto (crear repo, branches, PRs).
+- Buscar código, issues o pull requests en GitHub.
+- Crear issues, comentarios, o revisar PRs.
+
+## Crear proyecto en GitHub
+
+1. Crear el repositorio: `mcp_github_create_repository` (name, description, private, etc.).
+2. Para conectar el repo local: `git init`, `git remote add origin <url>`, push.
+
+Si el repo ya existe y solo necesitas branch/PR: usar `mcp_github_create_branch`, `mcp_github_create_pull_request`.
+
+## Herramientas útiles
+
+- Listar: `mcp_github_list_branches`, `mcp_github_list_pull_requests`, `mcp_github_list_issues`.
+- Buscar: `mcp_github_search_code`, `mcp_github_search_issues`, `mcp_github_search_pull_requests`.
+- Obtener usuario actual: `mcp_github_get_me` (para owner/repo en llamadas).

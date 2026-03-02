@@ -1,0 +1,26 @@
+---
+description: Usar solo PowerShell en la terminal (Windows)
+alwaysApply: true
+---
+
+# Terminal: solo PowerShell
+
+En este proyecto el shell es **PowerShell** (Windows). Al ejecutar comandos en la terminal:
+
+- **Siempre** usar sintaxis de PowerShell, no bash/sh.
+- **Encadenar comandos**: usar `;` en lugar de `&&`.
+- **Cambiar directorio y ejecutar**: `Set-Location C:\ruta; comando` o `cd C:\ruta; comando`.
+- **Variables de entorno**: `$env:NOMBRE = "valor"` o pasar en la misma línea antes del comando.
+- **Listar archivos**: `Get-ChildItem` (o `dir`), no `ls`.
+- **Buscar en archivos**: `Select-String -Path ... -Pattern ...` o `Get-ChildItem -Recurse | Select-String ...`.
+
+Ejemplos:
+
+```powershell
+# Correcto
+Set-Location C:\Projects\health-erino\web; npm run dev
+cd web; node scripts/migrate-neon.mjs
+
+# Evitar (sintaxis bash)
+cd web && npm run dev
+```

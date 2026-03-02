@@ -1,0 +1,28 @@
+---
+description: Cuándo y cómo usar Vercel MCP para deploy y proyectos
+globs: "**/*"
+alwaysApply: false
+---
+
+# Vercel MCP
+
+Usar las herramientas de Vercel MCP cuando:
+
+- Hacer deploy de la aplicación web.
+- Listar proyectos, deployments o ver logs de build/runtime.
+- Configurar o inspeccionar un proyecto en Vercel.
+
+## Deploy del proyecto
+
+- Deploy: `mcp_vercel_deploy_to_vercel` (desde el directorio del proyecto; para monorepo, el root de deploy debe ser `web/`).
+- Listar equipos: `mcp_vercel_list_teams` (para obtener teamId).
+- Listar proyectos: `mcp_vercel_list_projects` (teamId).
+- Ver deployments: `mcp_vercel_list_deployments` (projectId, teamId).
+- Logs de build: `mcp_vercel_get_deployment_build_logs`; logs de runtime: `mcp_vercel_get_runtime_logs`.
+
+## Crear proyecto en Vercel
+
+- Opción 1: Conectar el repo desde el Dashboard de Vercel (Import Git Repository) y configurar Root Directory = `web`.
+- Opción 2: Usar Vercel CLI: `vercel link`, luego configurar en el dashboard que el root sea `web/`.
+
+Variables de entorno: configurar en Project Settings (SUPABASE_*, GOOGLE_GENERATIVE_AI_API_KEY, GOOGLE_SHEET_CSV_URL).
