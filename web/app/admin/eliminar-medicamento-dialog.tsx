@@ -21,6 +21,7 @@ export function EliminarMedicamentoDialog({
   if (!medicamento) return null;
 
   async function handleConfirm() {
+    if (!medicamento) return;
     setError(null);
     setLoading(true);
     try {
