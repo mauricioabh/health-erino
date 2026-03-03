@@ -33,9 +33,8 @@ export function ChatSidebarTrigger() {
 
   const startListening = useCallback(() => {
     if (typeof window === "undefined") return;
-    const SpeechRecognitionAPI =
-      (window as unknown as { SpeechRecognition?: typeof SpeechRecognition }).SpeechRecognition ||
-      (window as unknown as { webkitSpeechRecognition?: typeof SpeechRecognition }).webkitSpeechRecognition;
+    const win = window as unknown as { SpeechRecognition?: new () => { start(): void; stop(): void }; webkitSpeechRecognition?: new () => { start(): void; stop(): void } };
+    const SpeechRecognitionAPI = win.SpeechRecognition || win.webkitSpeechRecognition;
     if (!SpeechRecognitionAPI) {
       alert("Tu navegador no soporta reconocimiento de voz. Usa Chrome o Edge.");
       return;
@@ -44,9 +43,9 @@ export function ChatSidebarTrigger() {
     rec.continuous = false;
     rec.interimResults = false;
     rec.lang = "es-ES";
-    rec.onresult = (event: SpeechRecognitionEvent) => {
+    rec.onresult = (event: { results: ArrayLike<{ 0: { transcript: string }; length: number }> }) => {
       const transcript = Array.from(event.results)
-        .map((r) => r[0].transcript)
+        .map((r: { 0: { transcript: string } }) => r[0].transcript)
         .join("");
       if (transcript.trim()) append({ role: "user", content: transcript });
       setListening(false);
