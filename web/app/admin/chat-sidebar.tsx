@@ -11,7 +11,7 @@ export function ChatSidebarTrigger() {
     api: "/api/chat",
   });
   const [listening, setListening] = useState(false);
-  const recognitionRef = useRef<SpeechRecognition | null>(null);
+  const recognitionRef = useRef<{ start(): void; stop(): void } | null>(null);
   const lastSpokenIdRef = useRef<string>("");
 
   const speak = useCallback((text: string) => {
