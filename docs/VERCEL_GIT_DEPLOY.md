@@ -1,6 +1,15 @@
 # Vincular Vercel con GitHub (health-erino)
 
-El repo está en GitHub y el proyecto **health-erino** en Vercel ya está creado, vinculado al repo y con Root Directory = `web`. Cada `git push origin main` dispara un deploy.
+El repo está en GitHub y el proyecto **health-erino** en Vercel está vinculado al repo. Cada `git push origin main` dispara un deploy.
+
+## ⚠️ Root Directory (obligatorio para monorepo)
+
+El proyecto tiene `web/` y `mobile/`. **Debes configurar Root Directory = `web`** en Vercel:
+
+1. Vercel Dashboard → proyecto **health-erino** → **Settings**
+2. **Build and Deployment** → **Root Directory** → **Edit**
+3. Escribe `web` y guarda
+4. Haz un **Redeploy** del último deployment para que aplique
 
 ## Variables de entorno en Vercel
 
