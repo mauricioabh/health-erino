@@ -1,6 +1,49 @@
 import { auth } from "@clerk/nextjs/server";
 import { sql } from "@/lib/db/neon";
 import { NextResponse } from "next/server";
+import { getMedicamentosFiltered } from "@/lib/db/medicamentos";
+
+const SORT_KEYS = ["nombre", "descripcion", "fecha_caducidad"] as const;
+const CADUCIDAD_VALUES = ["all", "caducados", "validos", "sin_fecha"] as const;
+type SortKey = (typeof SORT_KEYS)[number];
+type CaducidadFilter = (typeof CADUCIDAD_VALUES)[number];
+
+function isValidSort(s: string | null): s is SortKey {
+  return s != null && SORT_KEYS.includes(s as SortKey);
+}
+
+function isValidCaducidad(s: string | null): s is CaducidadFilter {
+  return s != null && CADUCIDAD_VALUES.includes(s as CaducidadFilter);
+}
+
+export async function GET(request: Request) {
+  const { userId } = await auth();
+  if (!userId) {
+    return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+  }
+  const { searchParams } = new URL(request.url);
+  const q = (searchParams.get("q") ?? "").trim();
+  const sortBy = isValidSort(searchParams.get("sortBy")) ? searchParams.get("sortBy") : "nombre";
+  const order = searchParams.get("order") === "desc" ? "desc" : "asc";
+  const caducidad = isValidCaducidad(searchParams.get("caducidad")) ? searchParams.get("caducidad") : "all";
+
+  const rows = await getMedicamentosFiltered({
+    q: q || undefined,
+    sortBy,
+    order,
+    caducidadFilter: caducidad,
+  });
+
+  const out = rows.map((r) => ({
+    id: String(r.id),
+    nombre: String(r.nombre),
+    descripcion: r.descripcion != null ? String(r.descripcion) : null,
+    fecha_caducidad: r.fecha_caducidad != null ? String(r.fecha_caducidad).slice(0, 10) : null,
+    stock: Number(r.stock) || 0,
+  }));
+
+  return NextResponse.json(out);
+}
 
 export async function POST(request: Request) {
   const { userId } = await auth();

@@ -110,7 +110,7 @@ const styles = StyleSheet.create({
   title: { fontSize: 22, fontWeight: "600", color: "#f8fafc", marginBottom: 8 },
   subtitle: { fontSize: 15, color: "#94a3b8", lineHeight: 22 },
   button: {
-    backgroundColor: "#4f46e5",
+    backgroundColor: "#059669",
     paddingVertical: 16,
     borderRadius: 12,
     alignItems: "center",

@@ -89,7 +89,7 @@ export default function HomeScreen() {
         <Text style={styles.headerLogo}>💊</Text>
         <Text style={styles.headerTitle}>Health-erino</Text>
       </View>
-      <Text style={styles.subtitle}>Pregunta por tus medicamentos por voz</Text>
+      <Text style={styles.subtitle}>Pregunta por tus medicamentos por voz. Las respuestas son solo con lo que tienes guardado.</Text>
 
       <TouchableOpacity
         style={[styles.micButton, listening && styles.micButtonActive]}
@@ -102,17 +102,31 @@ export default function HomeScreen() {
         </Text>
       </TouchableOpacity>
 
-      <TouchableOpacity
-        style={styles.uploadCsvLink}
-        onPress={() => router.push("/upload-csv")}
-      >
-        <Text style={styles.uploadCsvText}>📤 Subir CSV inicial (medicamentos)</Text>
-      </TouchableOpacity>
+      <View style={styles.linksRow}>
+        <TouchableOpacity
+          style={styles.uploadCsvLink}
+          onPress={() => router.push("/medicamentos-list")}
+        >
+          <Text style={styles.uploadCsvText}>📋 Ver lista de medicamentos</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.uploadCsvLink}
+          onPress={() => router.push("/upload-csv")}
+        >
+          <Text style={styles.uploadCsvText}>📤 Subir CSV inicial</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.uploadCsvLink}
+          onPress={() => router.push("/settings")}
+        >
+          <Text style={styles.uploadCsvText}>🔔 Notificaciones</Text>
+        </TouchableOpacity>
+      </View>
 
       <View style={styles.inputRow}>
         <TextInput
           style={styles.input}
-          placeholder="O escribe tu pregunta..."
+          placeholder="Ej: ¿Qué puedo tomar si me duele la cabeza?"
           placeholderTextColor="#94a3b8"
           value={inputText}
           onChangeText={setInputText}
@@ -146,7 +160,7 @@ export default function HomeScreen() {
         {[
           { step: "01", icon: "🔐", title: "Regístrate o inicia sesión", text: "Crea cuenta o usa Google. Solo usuarios autenticados acceden al panel.", accent: "cyan" as const },
           { step: "02", icon: "📋", title: "Administra medicamentos", text: "Añade, edita y revisa stock y caducidades desde el panel de admin.", accent: "rose" as const },
-          { step: "03", icon: "🎤", title: "Consulta por voz o chat", text: "Pregunta con el asistente de voz o desde la web.", accent: "violet" as const },
+          { step: "03", icon: "🎤", title: "Consulta por voz o chat", text: "Pregunta qué puedes tomar para un síntoma; el asistente responde solo con lo que tienes guardado y te da todas las opciones que apliquen.", accent: "violet" as const },
         ].map((item) => (
           <View key={item.step} style={[styles.stepCard, styles[`stepCard_${item.accent}` as keyof typeof styles]]}>
             <Text style={[styles.stepNum, styles[`stepNum_${item.accent}` as keyof typeof styles]]}>{item.step}</Text>
@@ -221,9 +235,14 @@ const styles = StyleSheet.create({
     color: "#fff",
     marginTop: 4,
   },
-  uploadCsvLink: {
-    alignSelf: "center",
+  linksRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "center",
+    gap: 8,
     marginTop: 8,
+  },
+  uploadCsvLink: {
     paddingVertical: 8,
     paddingHorizontal: 12,
   },

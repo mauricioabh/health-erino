@@ -3,6 +3,7 @@ import { get } from "@vercel/blob";
 import { sql } from "@/lib/db/neon";
 import { NextResponse } from "next/server";
 import Papa from "papaparse";
+import { enrichDescriptions } from "@/lib/gemini-enrich";
 
 const SETTINGS_KEY = "initial_csv_blob_url";
 
@@ -25,12 +26,12 @@ function normalizeRow(row: Record<string, string>) {
       fecha = d.toISOString().slice(0, 10);
     }
   }
-  const stock = rawStock ? parseInt(rawStock, 10) : 0;
+  const stock = rawStock ? parseInt(rawStock, 10) : 1;
   return {
     nombre: rawNombre || "Sin nombre",
     descripcion: rawDesc || null,
     fecha_caducidad: fecha,
-    stock: Number.isNaN(stock) ? 0 : stock,
+    stock: Number.isNaN(stock) || stock < 0 ? 1 : stock,
   };
 }
 
@@ -87,7 +88,26 @@ export async function POST(request: Request) {
       );
     }
 
-    const rows = parsed.data.map(normalizeRow).filter((r) => r.nombre);
+    let rows = parsed.data
+      .map(normalizeRow)
+      .filter((r) => r.nombre && r.nombre !== "Sin nombre");
+
+    const needEnrich = rows.filter((r) => r.nombre && !r.descripcion?.trim());
+    if (needEnrich.length > 0) {
+      try {
+        const nombres = [...new Set(needEnrich.map((r) => r.nombre.trim()).filter(Boolean))];
+        const descMap = await enrichDescriptions(nombres);
+        rows = rows.map((r) => {
+          if (r.nombre && !r.descripcion?.trim()) {
+            const desc = descMap.get(r.nombre) ?? descMap.get(r.nombre.trim()) ?? descMap.get(r.nombre.toLowerCase());
+            if (desc) return { ...r, descripcion: desc };
+          }
+          return r;
+        });
+      } catch (err) {
+        console.error("Enrich descriptions:", err);
+      }
+    }
 
     await sql`delete from public.medicamentos`;
 

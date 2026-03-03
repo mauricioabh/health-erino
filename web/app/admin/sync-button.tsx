@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { Upload } from "lucide-react";
 
 export function AdminSyncButton() {
   const inputRef = useRef<HTMLInputElement>(null);
@@ -69,12 +70,13 @@ export function AdminSyncButton() {
         type="button"
         onClick={() => inputRef.current?.click()}
         disabled={loading}
-        className="rounded-lg border border-slate-300 px-4 py-2 text-slate-700 hover:bg-slate-100 disabled:opacity-50"
+        className="flex items-center gap-1.5 rounded-md bg-emerald-600 px-3 py-1.5 text-sm text-white hover:bg-emerald-500 disabled:opacity-50 transition-colors"
       >
-        {loading ? "Subiendo y sincronizando…" : "Subir CSV inicial"}
+        <Upload className="h-3.5 w-3.5 shrink-0" />
+        {loading ? "Subiendo…" : "Subir CSV inicial"}
       </button>
       {message && (
-        <p className={`mt-2 text-sm ${message.type === "ok" ? "text-emerald-600" : "text-red-600"}`}>
+        <p className={`mt-1 text-xs ${message.type === "ok" ? "text-emerald-400" : "text-red-400"}`}>
           {message.text}
         </p>
       )}

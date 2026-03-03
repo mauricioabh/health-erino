@@ -19,6 +19,6 @@
       "package": "com.health_erino.app",
       "permissions": ["android.permission.RECORD_AUDIO"]
     },
-    "plugins": ["expo-router", "expo-speech-recognition"]
+    "plugins": ["expo-router", "expo-speech-recognition", "expo-notifications"]
   }
 }
