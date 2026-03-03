@@ -139,20 +139,6 @@ export default function HomePage() {
               signUpUrl="/sign-up"
               forceRedirectUrl="/admin"
               fallbackRedirectUrl="/admin"
-              localization={{
-                signIn: {
-                  forgotPassword: "¿Olvidaste tu contraseña?",
-                  alternativeMethods: {
-                    actionText: "O con email",
-                    blockButton__socialLink: "Continuar con {{provider|titleize}}",
-                  },
-                  submitButton: "Entrar",
-                },
-                footerAction: {
-                  text: "¿No tienes cuenta?",
-                  actionText: "Registrarse",
-                },
-              }}
               appearance={{
                 baseTheme: undefined,
                 variables: {
