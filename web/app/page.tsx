@@ -187,7 +187,6 @@ export default function HomePage() {
                 layout: {
                   socialButtonsPlacement: "top",
                   socialButtonsVariant: "blockButton",
-                  dividerPlacement: "center",
                 },
               }}
             />
