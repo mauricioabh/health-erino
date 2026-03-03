@@ -164,7 +164,6 @@ export default function HomePage() {
                   colorPrimary: "#4f46e5",
                   colorDanger: "#ef4444",
                   borderRadius: "0.75rem",
-                  borderColor: "rgba(255,255,255,0.1)",
                 },
                 elements: {
                   rootBox: "w-full",
