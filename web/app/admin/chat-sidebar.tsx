@@ -11,7 +11,7 @@ export function ChatSidebarTrigger() {
     api: "/api/chat",
   });
   const [listening, setListening] = useState(false);
-  const recognitionRef = useRef<{ start(): void; stop(): void } | null>(null);
+  const recognitionRef = useRef<{ start(): void; stop(): void; lang?: string } | null>(null);
   const lastSpokenIdRef = useRef<string>("");
 
   const speak = useCallback((text: string) => {
@@ -33,7 +33,17 @@ export function ChatSidebarTrigger() {
 
   const startListening = useCallback(() => {
     if (typeof window === "undefined") return;
-    const win = window as unknown as { SpeechRecognition?: new () => { start(): void; stop(): void }; webkitSpeechRecognition?: new () => { start(): void; stop(): void } };
+    type SpeechRecognitionInstance = {
+      start(): void;
+      stop(): void;
+      continuous: boolean;
+      interimResults: boolean;
+      lang: string;
+      onresult: ((e: { results: ArrayLike<{ 0: { transcript: string }; length: number }> }) => void) | null;
+      onend: (() => void) | null;
+      onerror: (() => void) | null;
+    };
+    const win = window as unknown as { SpeechRecognition?: new () => SpeechRecognitionInstance; webkitSpeechRecognition?: new () => SpeechRecognitionInstance };
     const SpeechRecognitionAPI = win.SpeechRecognition || win.webkitSpeechRecognition;
     if (!SpeechRecognitionAPI) {
       alert("Tu navegador no soporta reconocimiento de voz. Usa Chrome o Edge.");
@@ -45,7 +55,7 @@ export function ChatSidebarTrigger() {
     rec.lang = "es-ES";
     rec.onresult = (event: { results: ArrayLike<{ 0: { transcript: string }; length: number }> }) => {
       const transcript = Array.from(event.results)
-        .map((r: { 0: { transcript: string } }) => r[0].transcript)
+        .map((r) => (r as { 0: { transcript: string } })[0].transcript)
         .join("");
       if (transcript.trim()) append({ role: "user", content: transcript });
       setListening(false);
