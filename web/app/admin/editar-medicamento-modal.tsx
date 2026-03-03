@@ -37,6 +37,7 @@ export function EditarMedicamentoModal({
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (!medicamento) return;
     setError(null);
     setLoading(true);
     try {
