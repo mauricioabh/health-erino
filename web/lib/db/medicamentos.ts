@@ -86,7 +86,7 @@ export async function getMedicamentosFiltered(params: {
 }
 
 export async function getMedicamentosCount(params?: { q?: string | null }): Promise<number> {
-  const pattern = (params?.q ?? "").trim() ? `%${(params.q ?? "").trim()}%` : null;
+  const pattern = (params?.q ?? "").trim() ? `%${(params?.q ?? "").trim()}%` : null;
   if (!pattern) {
     const r = await sql`select count(*)::int as c from public.medicamentos`;
     return (r[0] as { c: number })?.c ?? 0;
