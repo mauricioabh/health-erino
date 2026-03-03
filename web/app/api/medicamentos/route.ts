@@ -1,7 +1,7 @@
 import { auth } from "@clerk/nextjs/server";
 import { sql } from "@/lib/db/neon";
 import { NextResponse } from "next/server";
-import { getMedicamentosFiltered } from "@/lib/db/medicamentos";
+import { getMedicamentosFiltered, getMedicamentosCount } from "@/lib/db/medicamentos";
 
 const SORT_KEYS = ["nombre", "descripcion", "fecha_caducidad"] as const;
 const CADUCIDAD_VALUES = ["all", "caducados", "validos", "sin_fecha"] as const;
@@ -27,12 +27,15 @@ export async function GET(request: Request) {
   const order = searchParams.get("order") === "desc" ? "desc" : "asc";
   const caducidad = isValidCaducidad(searchParams.get("caducidad")) ? searchParams.get("caducidad") : "all";
 
-  const rows = await getMedicamentosFiltered({
-    q: q || undefined,
-    sortBy,
-    order,
-    caducidadFilter: caducidad,
-  });
+  const [rows, totalCount] = await Promise.all([
+    getMedicamentosFiltered({
+      q: q || undefined,
+      sortBy,
+      order,
+      caducidadFilter: caducidad,
+    }),
+    getMedicamentosCount({ q: q || undefined }),
+  ]);
 
   const out = rows.map((r) => ({
     id: String(r.id),
@@ -42,7 +45,7 @@ export async function GET(request: Request) {
     stock: Number(r.stock) || 0,
   }));
 
-  return NextResponse.json(out);
+  return NextResponse.json({ items: out, totalCount });
 }
 
 export async function POST(request: Request) {
