@@ -30,6 +30,17 @@ health-erino/
 2. Copiar la **connection string** (Connection string → URI) y usarla como `DATABASE_URL`.
 3. En SQL Editor, ejecutar el contenido de `neon/migrations/001_medicamentos.sql`.
 
+### Neon preview branches (GitHub)
+
+Para aislar datos por PR o preview en Vercel:
+
+1. En [Neon Console](https://console.neon.tech) → tu proyecto → **Integrations** → conectar el repo de GitHub (`health-erino`).
+2. Activa **Create branch for every pull request** (o el equivalente en la integración). Neon crea una rama Postgres por PR y expone una `DATABASE_URL` distinta.
+3. En Vercel, enlaza la integración Neon o copia la connection string de la rama de preview a las variables de **Preview** (`DATABASE_URL`). Producción sigue usando la rama `main` de Neon.
+4. Tras merge del PR, Neon puede eliminar la rama automáticamente; las migraciones en `neon/migrations/` deben aplicarse en cada rama nueva (Vercel build hook o `npm run db:migrate` en el pipeline de preview).
+
+Cada preview usa su propia base: no comparte medicamentos ni datos de prueba con producción.
+
 ## Configurar Clerk
 
 1. [Clerk Dashboard](https://dashboard.clerk.com) → Create application.
@@ -84,3 +95,6 @@ En `.cursor/rules/` hay reglas para GitHub, Vercel, Neon/Clerk y Filesystem MCP 
 - **Pre-commit:** Husky at monorepo root runs lint-staged (`eslint --fix`, `prettier --write`) on staged `*.ts` / `*.tsx` in `web/` and `mobile/`.
 - **Observability:** `@sentry/nextjs` on the web app; Langfuse cloud traces per voice chat session (`/api/chat` → Gemini → tools) with medication names redacted. Set `SENTRY_DSN` and `LANGFUSE_*` in `web/.env.local`. Dev probe: `GET /api/debug/sentry` (non-production only).
 - **Async jobs:** Inngest cron (`sync-sheets-cron`, every 6h UTC) and optional `health/sync.sheets` event run shared `runSheetsToNeonSync()` (Google Sheets CSV or Blob URL → Neon). Without `INNGEST_*` or when `GOOGLE_SHEET_CSV_URL` is unset, cron logs a skip — manual sync still works via `POST /api/sync`. Pattern: [portfolio `docs/inngest-pattern.md`](https://github.com/mauricioabh/portfolio/blob/master/docs/inngest-pattern.md).
+- **API authorization tests:** Vitest in `web/tests/auth/` (`cd web && npm run test:auth`) — medicamentos, sync, and upload routes return **401** without a Clerk session. CI: `.github/workflows/ci.yml`.
+- **Neon preview branches:** GitHub integration creates an isolated Postgres branch per PR; wire `DATABASE_URL` to Vercel Preview (see [Neon preview branches](#neon-preview-branches-github) above).
+- **Security scanning:** CodeQL (`.github/workflows/codeql.yml`); Dependabot for npm and Actions (`.github/dependabot.yml`).
