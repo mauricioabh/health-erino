@@ -82,4 +82,4 @@ En `.cursor/rules/` hay reglas para GitHub, Vercel, Neon/Clerk y Filesystem MCP 
 ## Production practices
 
 - **Pre-commit:** Husky at monorepo root runs lint-staged (`eslint --fix`, `prettier --write`) on staged `*.ts` / `*.tsx` in `web/` and `mobile/`.
-- **Observability:** Sentry planned — set `SENTRY_DSN` in `web/.env.example` / `.env.local` after creating the `health-erino` project in Sentry.
+- **Observability:** `@sentry/nextjs` on the web app; Langfuse cloud traces per voice chat session (`/api/chat` → Gemini → tools) with medication names redacted. Set `SENTRY_DSN` and `LANGFUSE_*` in `web/.env.local`. Dev probe: `GET /api/debug/sentry` (non-production only).
