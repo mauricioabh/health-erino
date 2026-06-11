@@ -5,6 +5,22 @@
   "scripts": {
     "web": "npm run dev --prefix web",
     "mobile": "npm run start --prefix mobile",
-    "build:web": "npm run build --prefix web"
+    "build:web": "npm run build --prefix web",
+    "prepare": "husky"
+  },
+  "lint-staged": {
+    "*.{ts,tsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ]
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3",
+    "eslint": "^9",
+    "eslint-config-next": "^15.0.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.4.0",
+    "prettier": "^3.8.3",
+    "typescript-eslint": "^8.26.0"
   }
 }

@@ -78,3 +78,8 @@ npx expo start
 ## Cursor rules
 
 En `.cursor/rules/` hay reglas para GitHub, Vercel, Neon/Clerk y Filesystem MCP cuando aplique.
+
+## Production practices
+
+- **Pre-commit:** Husky at monorepo root runs lint-staged (`eslint --fix`, `prettier --write`) on staged `*.ts` / `*.tsx` in `web/` and `mobile/`.
+- **Observability:** Sentry planned — set `SENTRY_DSN` in `web/.env.example` / `.env.local` after creating the `health-erino` project in Sentry.
