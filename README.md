@@ -83,3 +83,4 @@ En `.cursor/rules/` hay reglas para GitHub, Vercel, Neon/Clerk y Filesystem MCP 
 
 - **Pre-commit:** Husky at monorepo root runs lint-staged (`eslint --fix`, `prettier --write`) on staged `*.ts` / `*.tsx` in `web/` and `mobile/`.
 - **Observability:** `@sentry/nextjs` on the web app; Langfuse cloud traces per voice chat session (`/api/chat` → Gemini → tools) with medication names redacted. Set `SENTRY_DSN` and `LANGFUSE_*` in `web/.env.local`. Dev probe: `GET /api/debug/sentry` (non-production only).
+- **Async jobs:** Inngest cron (`sync-sheets-cron`, every 6h UTC) and optional `health/sync.sheets` event run shared `runSheetsToNeonSync()` (Google Sheets CSV or Blob URL → Neon). Without `INNGEST_*` or when `GOOGLE_SHEET_CSV_URL` is unset, cron logs a skip — manual sync still works via `POST /api/sync`. Pattern: [portfolio `docs/inngest-pattern.md`](https://github.com/mauricioabh/portfolio/blob/master/docs/inngest-pattern.md).

@@ -17,6 +17,7 @@
     "@vercel/blob": "^2.3.0",
     "ai": "^4.0.0",
     "framer-motion": "^11.0.0",
+    "inngest": "^3.54.0",
     "langfuse": "^3.38.20",
     "lucide-react": "^0.576.0",
     "papaparse": "^5.4.1",
