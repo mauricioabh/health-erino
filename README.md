@@ -93,7 +93,7 @@ En `.cursor/rules/` hay reglas para GitHub, Vercel, Neon/Clerk y Filesystem MCP 
 ## Production practices
 
 - **Pre-commit:** Husky at monorepo root runs lint-staged (`eslint --fix`, `prettier --write`) on staged `*.ts` / `*.tsx` in `web/` and `mobile/`.
-- **Observability:** `@sentry/nextjs` on the web app; Langfuse cloud traces per voice chat session (`/api/chat` → Gemini → tools) with medication names redacted. Set `SENTRY_DSN` and `LANGFUSE_*` in `web/.env.local`. Dev probe: `GET /api/debug/sentry` (non-production only).
+- **Observability:** `@sentry/nextjs` on the web app; Langfuse cloud traces per voice chat session (`/api/chat` → Gemini → tools) with medication names redacted. Set `SENTRY_DSN` and `LANGFUSE_*` in `web/.env.local`. Dev probe: `GET /api/debug/sentry` (disabled when `VERCEL_ENV=production`); verify with `cd web && npm run test:observability`.
 - **Async jobs:** Inngest cron (`sync-sheets-cron`, every 6h UTC) and optional `health/sync.sheets` event run shared `runSheetsToNeonSync()` (Google Sheets CSV or Blob URL → Neon). Without `INNGEST_*` or when `GOOGLE_SHEET_CSV_URL` is unset, cron logs a skip — manual sync still works via `POST /api/sync`. Pattern: [portfolio `docs/inngest-pattern.md`](https://github.com/mauricioabh/portfolio/blob/master/docs/inngest-pattern.md).
 - **API authorization tests:** Vitest in `web/tests/auth/` (`cd web && npm run test:auth`) — medicamentos, sync, and upload routes return **401** without a Clerk session. CI: `.github/workflows/ci.yml`.
 - **Neon preview branches:** GitHub integration creates an isolated Postgres branch per PR; wire `DATABASE_URL` to Vercel Preview (see [Neon preview branches](#neon-preview-branches-github) above).

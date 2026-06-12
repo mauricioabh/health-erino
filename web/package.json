@@ -8,7 +8,9 @@
     "start": "next start",
     "lint": "next lint",
     "db:migrate": "node scripts/migrate-neon.mjs",
-    "test:auth": "vitest run tests/auth"
+    "test:auth": "vitest run tests/auth",
+    "test:observability": "node scripts/sentry-probe.mjs",
+    "test:sentry-probe": "npm run test:observability"
   },
   "dependencies": {
     "@ai-sdk/google": "^1.0.0",
