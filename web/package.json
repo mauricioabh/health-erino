@@ -13,7 +13,7 @@
     "test:sentry-probe": "npm run test:observability"
   },
   "dependencies": {
-    "@ai-sdk/google": "^1.0.0",
+    "@ai-sdk/google": "^3.0.83",
     "@clerk/nextjs": "^6.0.0",
     "@neondatabase/serverless": "^0.10.0",
     "@sentry/nextjs": "^10.57.0",
