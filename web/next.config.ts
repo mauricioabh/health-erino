@@ -1,7 +1,15 @@
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { withSentryConfig } from "@sentry/nextjs";
 import type { NextConfig } from "next";
 
-const nextConfig: NextConfig = {};
+const webRoot = path.dirname(fileURLToPath(import.meta.url));
+
+const nextConfig: NextConfig = {
+  turbopack: {
+    root: webRoot,
+  },
+};
 
 export default withSentryConfig(nextConfig, {
   org: process.env.SENTRY_ORG,
