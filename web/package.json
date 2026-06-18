@@ -15,7 +15,7 @@
   "dependencies": {
     "@ai-sdk/google": "^1.0.0",
     "@clerk/nextjs": "^6.0.0",
-    "@neondatabase/serverless": "^0.10.0",
+    "@neondatabase/serverless": "^1.1.0",
     "@sentry/nextjs": "^10.57.0",
     "@vercel/blob": "^2.3.0",
     "ai": "^4.0.0",
