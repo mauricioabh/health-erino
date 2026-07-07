@@ -1,11 +1,8 @@
-import type { Metadata } from "next";
 import { ClerkProvider } from "@clerk/nextjs";
+import { rootLayoutMetadata } from "@/lib/seo/metadata";
 import "./globals.css";
 
-export const metadata: Metadata = {
-  title: "Health-erino - Gestión de medicamentos",
-  description: "Asistente de medicamentos con voz e IA",
-};
+export const metadata = rootLayoutMetadata();
 
 export default function RootLayout({
   children,
