@@ -4,6 +4,8 @@ export const MAX_SEARCH_NOMBRE_CHARS = 100;
 export const MAX_NOMBRE_FIELD_CHARS = 200;
 export const MAX_DESCRIPCION_FIELD_CHARS = 2000;
 
+export const GEMINI_CHAT_MODEL = "gemini-flash-lite-latest";
+
 export const MAX_OUTPUT_TOKENS_CHAT = 1024;
 export const MAX_OUTPUT_TOKENS_CLASSIFIER = 256;
 export const MAX_OUTPUT_TOKENS_ENRICH = 2048;

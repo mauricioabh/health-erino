@@ -15,6 +15,7 @@ import {
   redactMessages,
 } from "@/lib/langfuse";
 import {
+  GEMINI_CHAT_MODEL,
   MAX_OUTPUT_TOKENS_CHAT,
   MAX_OUTPUT_TOKENS_CLASSIFIER,
   REJECTION_MESSAGES,
@@ -45,7 +46,7 @@ function rejectionResponse(message: string, reason: string) {
 async function classifyUserMessage(userMessage: string) {
   try {
     const { object } = await generateObject({
-      model: google("gemini-flash-latest"),
+      model: google(GEMINI_CHAT_MODEL),
       schema: llmResponseSchema,
       system: CLASSIFIER_SYSTEM_PROMPT,
       prompt: userMessage,
@@ -120,12 +121,12 @@ export async function POST(request: Request) {
     if (stream) {
       const generation = trace?.generation({
         name: "gemini-stream",
-        model: "gemini-flash-latest",
+        model: GEMINI_CHAT_MODEL,
         input: redactMessages(mapped),
       });
 
       const result = streamText({
-        model: google("gemini-flash-latest"),
+        model: google(GEMINI_CHAT_MODEL),
         system: SYSTEM_PROMPT,
         messages: mapped,
         tools,
@@ -158,12 +159,12 @@ export async function POST(request: Request) {
 
     const generation = trace?.generation({
       name: "gemini-generate",
-      model: "gemini-flash-latest",
+      model: GEMINI_CHAT_MODEL,
       input: redactMessages(mapped),
     });
 
     const result = await generateText({
-      model: google("gemini-flash-latest"),
+      model: google(GEMINI_CHAT_MODEL),
       system: SYSTEM_PROMPT,
       messages: mapped,
       tools,
