@@ -1,5 +1,8 @@
 import { google } from "@ai-sdk/google";
-import { MAX_OUTPUT_TOKENS_ENRICH } from "@/lib/llm-security/constants";
+import {
+  GEMINI_CHAT_MODEL,
+  MAX_OUTPUT_TOKENS_ENRICH,
+} from "@/lib/llm-security/constants";
 import { generateText } from "ai";
 
 /** Dado una lista de nombres de medicamentos, pide a Gemini que devuelva descripciones (principios activos/sustancias). */
@@ -23,7 +26,7 @@ Reglas:
 - Responde solo el JSON, sin \`\`\` ni texto adicional.`;
 
   const { text } = await generateText({
-    model: google("gemini-flash-latest"),
+    model: google(GEMINI_CHAT_MODEL),
     prompt,
     maxTokens: MAX_OUTPUT_TOKENS_ENRICH,
   });
