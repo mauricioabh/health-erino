@@ -45,12 +45,12 @@ export async function POST(request: Request) {
     if (stream) {
       const generation = trace?.generation({
         name: "gemini-stream",
-        model: "gemini-2.5-flash",
+        model: "gemini-flash-latest",
         input: redactMessages(messages),
       });
 
       const result = streamText({
-        model: google("gemini-2.5-flash"),
+        model: google("gemini-flash-latest"),
         system: SYSTEM_PROMPT,
         messages: mapped,
         tools: medicamentosTools,
@@ -78,12 +78,12 @@ export async function POST(request: Request) {
 
     const generation = trace?.generation({
       name: "gemini-generate",
-      model: "gemini-2.5-flash",
+      model: "gemini-flash-latest",
       input: redactMessages(messages),
     });
 
     const result = await generateText({
-      model: google("gemini-2.5-flash"),
+      model: google("gemini-flash-latest"),
       system: SYSTEM_PROMPT,
       messages: mapped,
       tools: medicamentosTools,
