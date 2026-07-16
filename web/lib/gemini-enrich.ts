@@ -1,9 +1,10 @@
 import { google } from "@ai-sdk/google";
+import { MAX_OUTPUT_TOKENS_ENRICH } from "@/lib/llm-security/constants";
 import { generateText } from "ai";
 
 /** Dado una lista de nombres de medicamentos, pide a Gemini que devuelva descripciones (principios activos/sustancias). */
 export async function enrichDescriptions(
-  nombres: string[]
+  nombres: string[],
 ): Promise<Map<string, string>> {
   if (nombres.length === 0) return new Map();
   const list = nombres.slice(0, 50).join("\n"); // límite para no exceder contexto
@@ -24,6 +25,7 @@ Reglas:
   const { text } = await generateText({
     model: google("gemini-flash-latest"),
     prompt,
+    maxTokens: MAX_OUTPUT_TOKENS_ENRICH,
   });
   const map = new Map<string, string>();
   try {
@@ -32,9 +34,13 @@ Reglas:
     const codeBlock = jsonStr.match(/```(?:json)?\s*([\s\S]*?)```/);
     if (codeBlock) jsonStr = codeBlock[1].trim();
 
-    const parsed = JSON.parse(jsonStr) as { items?: Array<{ nombre?: string; descripcion?: string }> };
+    const parsed = JSON.parse(jsonStr) as {
+      items?: Array<{ nombre?: string; descripcion?: string }>;
+    };
     const items = parsed?.items ?? [];
-    const nombresLower = new Map(nombres.map((n) => [n.toLowerCase().trim(), n]));
+    const nombresLower = new Map(
+      nombres.map((n) => [n.toLowerCase().trim(), n]),
+    );
 
     for (const item of items) {
       const nom = item.nombre?.trim();

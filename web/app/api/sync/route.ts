@@ -11,7 +11,7 @@ export async function POST(request: Request) {
 
     const body = await request.json().catch(() => ({}));
     const blobUrl = body?.blobUrl as string | undefined;
-    const result = await runSheetsToNeonSync({ blobUrl });
+    const result = await runSheetsToNeonSync({ blobUrl, userId });
 
     if (!result.ok) {
       return NextResponse.json(
