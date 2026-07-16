@@ -1,63 +1,72 @@
 import { sql } from "@/lib/db/neon";
 import { tool } from "ai";
 import { z } from "zod";
+import { MAX_SEARCH_NOMBRE_CHARS } from "@/lib/llm-security/constants";
+import { sanitizeMedicamentoFields } from "@/lib/llm-security/sanitize-untrusted-fields";
+
+export { MAX_TOOL_STEPS } from "@/lib/llm-security/constants";
 
 const today = new Date().toISOString().slice(0, 10);
 
-function addCaducado<T extends { fecha_caducidad: string | null }>(row: T) {
+type MedicamentoToolRow = {
+  id: string;
+  nombre: string;
+  descripcion: string | null;
+  fecha_caducidad: string | null;
+  stock: number;
+};
+
+function normalizeRow(row: MedicamentoToolRow) {
+  const sanitized = sanitizeMedicamentoFields(row);
   return {
-    ...row,
-    caducado: row.fecha_caducidad != null && row.fecha_caducidad < today,
+    ...sanitized,
+    caducado:
+      sanitized.fecha_caducidad != null && sanitized.fecha_caducidad < today,
   };
 }
 
-export const medicamentosTools = {
-  get_medicamentos: tool({
-    description:
-      "Lista todos los medicamentos en la base de datos. Incluye nombre, descripcion, fecha_caducidad, stock y si ya caducó.",
-    parameters: z.object({}),
-    execute: async (_: Record<string, never>) => {
-      const data = await sql`
-        select id, nombre, descripcion, fecha_caducidad, stock
-        from public.medicamentos
-        order by nombre
-      `;
-      return (
-        data as Array<{
-          id: string;
-          nombre: string;
-          descripcion: string | null;
-          fecha_caducidad: string | null;
-          stock: number;
-        }>
-      ).map(addCaducado);
-    },
-  }),
-  search_medicamento_by_name: tool({
-    description:
-      "Busca medicamentos por nombre (parcial). Devuelve nombre, descripcion, fecha_caducidad, stock y si está caducado.",
-    parameters: z.object({
-      nombre: z.string().describe("Nombre o parte del nombre del medicamento"),
+/**
+ * Herramientas de medicamentos acotadas al usuario autenticado.
+ * El `userId` viene del servidor (Clerk), nunca del modelo, para evitar
+ * que el LLM acceda a inventarios de otros usuarios.
+ */
+export function createMedicamentosTools(userId: string) {
+  return {
+    get_medicamentos: tool({
+      description:
+        "Lista todos los medicamentos del usuario. Incluye nombre, descripcion, fecha_caducidad, stock y si ya caducó.",
+      parameters: z.object({}),
+      execute: async (_: Record<string, never>) => {
+        const data = (await sql`
+          select id, nombre, descripcion, fecha_caducidad, stock
+          from public.medicamentos
+          where user_id = ${userId}
+          order by nombre
+        `) as MedicamentoToolRow[];
+        return data.map(normalizeRow);
+      },
     }),
-    execute: async ({ nombre }: { nombre: string }) => {
-      const pattern = `%${nombre}%`;
-      const data = await sql`
-        select id, nombre, descripcion, fecha_caducidad, stock
-        from public.medicamentos
-        where nombre ilike ${pattern}
-      `;
-      return (
-        data as Array<{
-          id: string;
-          nombre: string;
-          descripcion: string | null;
-          fecha_caducidad: string | null;
-          stock: number;
-        }>
-      ).map(addCaducado);
-    },
-  }),
-};
+    search_medicamento_by_name: tool({
+      description:
+        "Busca medicamentos del usuario por nombre (parcial). Devuelve nombre, descripcion, fecha_caducidad, stock y si está caducado.",
+      parameters: z.object({
+        nombre: z
+          .string()
+          .max(MAX_SEARCH_NOMBRE_CHARS)
+          .describe("Nombre o parte del nombre del medicamento"),
+      }),
+      execute: async ({ nombre }: { nombre: string }) => {
+        const pattern = `%${nombre.slice(0, MAX_SEARCH_NOMBRE_CHARS)}%`;
+        const data = (await sql`
+          select id, nombre, descripcion, fecha_caducidad, stock
+          from public.medicamentos
+          where user_id = ${userId} and nombre ilike ${pattern}
+        `) as MedicamentoToolRow[];
+        return data.map(normalizeRow);
+      },
+    }),
+  };
+}
 
 export const SYSTEM_PROMPT = `Eres un asistente médico doméstico profesional. Tienes acceso a la base de datos de medicamentos del usuario (solo lo que tiene guardado).
 

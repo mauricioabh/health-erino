@@ -9,6 +9,6 @@ export async function GET(request: Request) {
   }
   const { searchParams } = new URL(request.url);
   const q = (searchParams.get("q") ?? "").trim();
-  const count = await getMedicamentosCount({ q: q || undefined });
+  const count = await getMedicamentosCount({ userId, q: q || undefined });
   return NextResponse.json({ count });
 }

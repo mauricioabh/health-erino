@@ -1,4 +1,6 @@
 import { Pill } from "lucide-react";
+import { auth } from "@clerk/nextjs/server";
+import { redirect } from "next/navigation";
 import {
   getMedicamentosFiltered,
   getMedicamentosCount,
@@ -30,6 +32,9 @@ export default async function AdminPage({
     caducidad?: string;
   }>;
 }) {
+  const { userId } = await auth();
+  if (!userId) redirect("/sign-in?redirect_url=/admin");
+
   const params = await searchParams;
   const q = params.q ?? "";
   const sortBy = params.sortBy ?? "nombre";
@@ -43,12 +48,13 @@ export default async function AdminPage({
     : "all";
   const [raw, totalCount] = await Promise.all([
     getMedicamentosFiltered({
+      userId,
       q: q || undefined,
       sortBy,
       order,
       caducidadFilter,
     }),
-    getMedicamentosCount({ q: q || undefined }),
+    getMedicamentosCount({ userId, q: q || undefined }),
   ]);
   const medicamentos: Medicamento[] = raw.map((m) => ({
     id: String(m.id),
@@ -56,6 +62,8 @@ export default async function AdminPage({
     descripcion: m.descripcion != null ? String(m.descripcion) : null,
     fecha_caducidad: toDateString(m.fecha_caducidad),
     stock: Number(m.stock) || 0,
+    user_id: String(m.user_id),
+    created_at: m.created_at != null ? String(m.created_at) : undefined,
   }));
 
   return (

@@ -3,7 +3,7 @@ import { put } from "@vercel/blob";
 import { sql } from "@/lib/db/neon";
 import { NextResponse } from "next/server";
 
-const SETTINGS_KEY = "initial_csv_blob_url";
+import { SETTINGS_KEY, SYNC_USER_KEY } from "@/lib/sync/sheets-to-neon";
 
 export async function POST(request: Request) {
   try {
@@ -17,7 +17,7 @@ export async function POST(request: Request) {
     if (!file) {
       return NextResponse.json(
         { error: "Falta el archivo. Sube un CSV." },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -25,7 +25,7 @@ export async function POST(request: Request) {
     if (!name.endsWith(".csv")) {
       return NextResponse.json(
         { error: "Solo se permiten archivos CSV." },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -33,7 +33,7 @@ export async function POST(request: Request) {
     if (!token) {
       return NextResponse.json(
         { error: "BLOB_READ_WRITE_TOKEN no configurado (Vercel Blob)." },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
@@ -51,12 +51,18 @@ export async function POST(request: Request) {
       on conflict (key) do update set value = ${blob.url}, updated_at = now()
     `;
 
+    await sql`
+      insert into public.app_settings (key, value, updated_at)
+      values (${SYNC_USER_KEY}, ${userId}, now())
+      on conflict (key) do update set value = ${userId}, updated_at = now()
+    `;
+
     return NextResponse.json({ url: blob.url });
   } catch (e) {
     console.error(e);
     return NextResponse.json(
       { error: "Error al subir el archivo" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

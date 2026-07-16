@@ -17,7 +17,17 @@ Se usa para guardar la URL del CSV inicial en Vercel Blob (key: `initial_csv_blo
 - `descripcion` text, nullable
 - `fecha_caducidad` date, nullable
 - `stock` int, NOT NULL, default 0
+- `user_id` text, NOT NULL (Clerk `userId`; aislamiento por usuario)
 - `created_at` timestamptz, default now()
+
+Índice: `medicamentos_user_id_idx` en `user_id`.
+
+Migración: `neon/migrations/003_medicamentos_user_id.sql`.
+
+## `app_settings` keys relevantes
+
+- `initial_csv_blob_url` — URL del CSV en Vercel Blob
+- `sync_user_id` — Clerk userId dueño del sync cron (se setea al subir CSV o sync manual)
 
 ## Aplicar migración
 

@@ -14,11 +14,35 @@ vi.mock("@/lib/db/neon", () => ({
   sql: vi.fn(),
 }));
 
+vi.mock("ai", () => ({
+  streamText: vi.fn(),
+  generateText: vi.fn(),
+  generateObject: vi.fn(),
+}));
+
+vi.mock("@ai-sdk/google", () => ({
+  google: vi.fn(() => "mock-model"),
+}));
+
+vi.mock("@/lib/gemini-tools", () => ({
+  createMedicamentosTools: vi.fn(() => ({})),
+  MAX_TOOL_STEPS: 3,
+  SYSTEM_PROMPT: "test",
+}));
+
+vi.mock("@/lib/langfuse", () => ({
+  flushLangfuse: vi.fn(),
+  getLangfuse: vi.fn(() => null),
+  redactForTrace: vi.fn((t: string) => t),
+  redactMessages: vi.fn((m: unknown) => m),
+}));
+
 import { GET, POST } from "@/app/api/medicamentos/route";
 import { GET as GET_COUNT } from "@/app/api/medicamentos/count/route";
 import { DELETE, PATCH } from "@/app/api/medicamentos/[id]/route";
 import { POST as POST_SYNC } from "@/app/api/sync/route";
 import { POST as POST_UPLOAD } from "@/app/api/upload-initial-csv/route";
+import { POST as POST_CHAT } from "@/app/api/chat/route";
 
 describe("API routes return 401 without Clerk session", () => {
   beforeEach(() => {
@@ -90,6 +114,19 @@ describe("API routes return 401 without Clerk session", () => {
     const response = await POST_UPLOAD(
       new Request("http://localhost/api/upload-initial-csv", {
         method: "POST",
+      }),
+    );
+    expect(response.status).toBe(401);
+  });
+
+  it("POST /api/chat", async () => {
+    const response = await POST_CHAT(
+      new Request("http://localhost/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          messages: [{ role: "user", content: "hola" }],
+        }),
       }),
     );
     expect(response.status).toBe(401);

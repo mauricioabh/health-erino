@@ -4,6 +4,7 @@ export type Medicamento = {
   descripcion: string | null;
   fecha_caducidad: string | null;
   stock: number;
+  user_id: string;
   created_at?: string;
 };
 

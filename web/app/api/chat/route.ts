@@ -1,18 +1,71 @@
+import { auth } from "@clerk/nextjs/server";
 import { google } from "@ai-sdk/google";
-import { streamText, generateText } from "ai";
+import { generateObject, streamText, generateText } from "ai";
 import { randomUUID } from "node:crypto";
 import * as Sentry from "@sentry/nextjs";
-import { SYSTEM_PROMPT, medicamentosTools } from "@/lib/gemini-tools";
+import {
+  createMedicamentosTools,
+  MAX_TOOL_STEPS,
+  SYSTEM_PROMPT,
+} from "@/lib/gemini-tools";
 import {
   flushLangfuse,
   getLangfuse,
   redactForTrace,
   redactMessages,
 } from "@/lib/langfuse";
+import {
+  MAX_OUTPUT_TOKENS_CHAT,
+  MAX_OUTPUT_TOKENS_CLASSIFIER,
+  REJECTION_MESSAGES,
+} from "@/lib/llm-security/constants";
+import {
+  llmResponseSchema,
+  runPostCheckObservability,
+} from "@/lib/llm-security/post-check";
+import { runPreCheck } from "@/lib/llm-security/pre-check";
+import { CLASSIFIER_SYSTEM_PROMPT } from "@/lib/llm-security/prompts";
+import {
+  getLastUserMessage,
+  sanitizeChatMessages,
+} from "@/lib/llm-security/sanitize-input";
+import { NextResponse } from "next/server";
 
 export const maxDuration = 30;
 
+function rejectionResponse(message: string, reason: string) {
+  console.info("[llm-security] pre_check_hit", { reason });
+  return Response.json({
+    category: reason,
+    content: message,
+    pre_check_hit: true,
+  });
+}
+
+async function classifyUserMessage(userMessage: string) {
+  try {
+    const { object } = await generateObject({
+      model: google("gemini-flash-latest"),
+      schema: llmResponseSchema,
+      system: CLASSIFIER_SYSTEM_PROMPT,
+      prompt: userMessage,
+      maxTokens: MAX_OUTPUT_TOKENS_CLASSIFIER,
+    });
+    return object;
+  } catch (err) {
+    Sentry.captureException(err, {
+      tags: { route: "chat", phase: "preflight" },
+    });
+    return null;
+  }
+}
+
 export async function POST(request: Request) {
+  const { userId } = await auth({ acceptsToken: "session_token" });
+  if (!userId) {
+    return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+  }
+
   let body: { messages?: Array<{ role?: string; content?: string }> } = {};
   try {
     body = await request.json();
@@ -22,22 +75,44 @@ export async function POST(request: Request) {
       headers: { "Content-Type": "application/json" },
     });
   }
-  const messages = body.messages ?? [];
-  const mapped = messages
-    .filter((m) => m.role && m.content)
-    .map((m) => ({
-      role: m.role as "user" | "assistant" | "system",
-      content: String(m.content),
-    }));
+
+  const mapped = sanitizeChatMessages(body.messages ?? []);
+  if (mapped.length === 0) {
+    return NextResponse.json(
+      { error: "Se requiere al menos un mensaje de usuario" },
+      { status: 400 },
+    );
+  }
+
+  const lastUser = getLastUserMessage(mapped);
+  if (lastUser) {
+    const preCheck = runPreCheck(lastUser);
+    if (preCheck.blocked) {
+      return rejectionResponse(preCheck.message, preCheck.reason);
+    }
+
+    const classification = await classifyUserMessage(lastUser);
+    if (classification && classification.category !== "IN_SCOPE") {
+      const message =
+        classification.message ||
+        REJECTION_MESSAGES[
+          classification.category as keyof typeof REJECTION_MESSAGES
+        ] ||
+        REJECTION_MESSAGES.OUT_OF_SCOPE;
+      return rejectionResponse(message, classification.category);
+    }
+  }
 
   const url = new URL(request.url);
   const stream = url.searchParams.get("stream") !== "false";
   const sessionId = request.headers.get("x-session-id")?.trim() || randomUUID();
+  const tools = createMedicamentosTools(userId);
 
   const langfuse = getLangfuse();
   const trace = langfuse?.trace({
     name: "voice-chat-session",
     sessionId,
+    userId,
     metadata: { stream },
   });
 
@@ -46,16 +121,21 @@ export async function POST(request: Request) {
       const generation = trace?.generation({
         name: "gemini-stream",
         model: "gemini-flash-latest",
-        input: redactMessages(messages),
+        input: redactMessages(mapped),
       });
 
       const result = streamText({
         model: google("gemini-flash-latest"),
         system: SYSTEM_PROMPT,
         messages: mapped,
-        tools: medicamentosTools,
-        maxSteps: 5,
+        tools,
+        maxSteps: MAX_TOOL_STEPS,
+        maxTokens: MAX_OUTPUT_TOKENS_CHAT,
         onFinish: async ({ text, toolCalls, usage }) => {
+          runPostCheckObservability({
+            message: text,
+            stream: true,
+          });
           generation?.end({
             output: redactForTrace(text),
             metadata: {
@@ -79,15 +159,21 @@ export async function POST(request: Request) {
     const generation = trace?.generation({
       name: "gemini-generate",
       model: "gemini-flash-latest",
-      input: redactMessages(messages),
+      input: redactMessages(mapped),
     });
 
     const result = await generateText({
       model: google("gemini-flash-latest"),
       system: SYSTEM_PROMPT,
       messages: mapped,
-      tools: medicamentosTools,
-      maxSteps: 5,
+      tools,
+      maxSteps: MAX_TOOL_STEPS,
+      maxTokens: MAX_OUTPUT_TOKENS_CHAT,
+    });
+
+    runPostCheckObservability({
+      message: result.text,
+      stream: false,
     });
 
     generation?.end({
