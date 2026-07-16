@@ -10,6 +10,8 @@
     "lint": "next lint",
     "db:migrate": "node scripts/migrate-neon.mjs",
     "test:auth": "vitest run tests/auth",
+    "test:llm-security": "vitest run tests/llm-security",
+    "pwa:icons": "node scripts/generate-pwa-icons.mjs",
     "test:observability": "node scripts/sentry-probe.mjs",
     "test:sentry-probe": "npm run test:observability"
   },
@@ -18,6 +20,7 @@
     "@clerk/nextjs": "^6.0.0",
     "@neondatabase/serverless": "^0.10.0",
     "@sentry/nextjs": "^10.57.0",
+    "@serwist/next": "^9.5.11",
     "@vercel/blob": "^2.3.0",
     "ai": "^4.0.0",
     "framer-motion": "^11.0.0",
@@ -27,6 +30,7 @@
     "papaparse": "^5.4.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "serwist": "^9.5.11",
     "zod": "^3.23.0"
   },
   "devDependencies": {
@@ -41,6 +45,7 @@
     "eslint-config-next": "^15.0.0",
     "next": "^15.0.0",
     "postcss": "^8.4.49",
+    "sharp": "^0.35.3",
     "tailwindcss": "^3.4.15",
     "typescript": "^5.6.0",
     "vitest": "^3.2.4"

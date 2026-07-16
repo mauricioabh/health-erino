@@ -26,11 +26,16 @@ export default async function EditarMedicamentoPage({
 
   return (
     <div className="max-w-lg">
-      <Link href="/admin" className="flex items-center gap-1.5 text-sm text-slate-400 hover:text-white mb-2 transition-colors w-fit">
+      <Link
+        href="/admin"
+        className="flex items-center gap-1.5 text-sm text-slate-400 hover:text-white mb-2 transition-colors w-fit"
+      >
         <ArrowLeft className="h-3.5 w-3.5" />
         Volver
       </Link>
-      <h1 className="text-base font-bold text-white mb-3">Editar medicamento</h1>
+      <h1 className="text-base font-bold text-white mb-3">
+        Editar medicamento
+      </h1>
       <EditarForm medicamento={data} />
     </div>
   );

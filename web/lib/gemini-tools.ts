@@ -7,8 +7,7 @@ const today = new Date().toISOString().slice(0, 10);
 function addCaducado<T extends { fecha_caducidad: string | null }>(row: T) {
   return {
     ...row,
-    caducado:
-      row.fecha_caducidad != null && row.fecha_caducidad < today,
+    caducado: row.fecha_caducidad != null && row.fecha_caducidad < today,
   };
 }
 
@@ -23,7 +22,15 @@ export const medicamentosTools = {
         from public.medicamentos
         order by nombre
       `;
-      return (data as Array<{ id: string; nombre: string; descripcion: string | null; fecha_caducidad: string | null; stock: number }>).map(addCaducado);
+      return (
+        data as Array<{
+          id: string;
+          nombre: string;
+          descripcion: string | null;
+          fecha_caducidad: string | null;
+          stock: number;
+        }>
+      ).map(addCaducado);
     },
   }),
   search_medicamento_by_name: tool({
@@ -39,7 +46,15 @@ export const medicamentosTools = {
         from public.medicamentos
         where nombre ilike ${pattern}
       `;
-      return (data as Array<{ id: string; nombre: string; descripcion: string | null; fecha_caducidad: string | null; stock: number }>).map(addCaducado);
+      return (
+        data as Array<{
+          id: string;
+          nombre: string;
+          descripcion: string | null;
+          fecha_caducidad: string | null;
+          stock: number;
+        }>
+      ).map(addCaducado);
     },
   }),
 };

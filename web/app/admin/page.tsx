@@ -1,5 +1,8 @@
 import { Pill } from "lucide-react";
-import { getMedicamentosFiltered, getMedicamentosCount } from "@/lib/db/medicamentos";
+import {
+  getMedicamentosFiltered,
+  getMedicamentosCount,
+} from "@/lib/db/medicamentos";
 import { AdminSyncButton } from "./sync-button";
 import { DownloadTemplateButton } from "./download-template-button";
 import { NuevoMedicamentoModal } from "./nuevo-medicamento-modal";
@@ -20,17 +23,31 @@ function toDateString(v: unknown): string | null {
 export default async function AdminPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; sortBy?: string; order?: string; caducidad?: string }>;
+  searchParams: Promise<{
+    q?: string;
+    sortBy?: string;
+    order?: string;
+    caducidad?: string;
+  }>;
 }) {
   const params = await searchParams;
   const q = params.q ?? "";
   const sortBy = params.sortBy ?? "nombre";
   const order = (params.order === "desc" ? "desc" : "asc") as "asc" | "desc";
-  const caducidadFilter: CaducidadFilter = ["caducados", "validos", "sin_fecha"].includes(params.caducidad ?? "")
+  const caducidadFilter: CaducidadFilter = [
+    "caducados",
+    "validos",
+    "sin_fecha",
+  ].includes(params.caducidad ?? "")
     ? (params.caducidad as CaducidadFilter)
     : "all";
   const [raw, totalCount] = await Promise.all([
-    getMedicamentosFiltered({ q: q || undefined, sortBy, order, caducidadFilter }),
+    getMedicamentosFiltered({
+      q: q || undefined,
+      sortBy,
+      order,
+      caducidadFilter,
+    }),
     getMedicamentosCount({ q: q || undefined }),
   ]);
   const medicamentos: Medicamento[] = raw.map((m) => ({
