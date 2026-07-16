@@ -11,11 +11,10 @@ export default async function EditarMedicamentoPage({
 }) {
   const { id } = await params;
   const rows = (await sql`
-    select id, user_id, nombre, descripcion, fecha_caducidad, stock from public.medicamentos
+    select id, nombre, descripcion, fecha_caducidad, stock from public.medicamentos
     where id = ${id}
   `) as Array<{
     id: string;
-    user_id: string;
     nombre: string;
     descripcion: string | null;
     fecha_caducidad: string | null;
