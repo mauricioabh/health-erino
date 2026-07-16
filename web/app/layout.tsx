@@ -1,4 +1,5 @@
 import { ClerkProvider } from "@clerk/nextjs";
+import { SerwistProvider } from "@serwist/next/react";
 import { rootLayoutMetadata } from "@/lib/seo/metadata";
 import "./globals.css";
 
@@ -12,7 +13,14 @@ export default function RootLayout({
   return (
     <ClerkProvider>
       <html lang="es">
-        <body>{children}</body>
+        <body>
+          <SerwistProvider
+            swUrl="/sw.js"
+            disable={process.env.NODE_ENV === "development"}
+          >
+            {children}
+          </SerwistProvider>
+        </body>
       </html>
     </ClerkProvider>
   );

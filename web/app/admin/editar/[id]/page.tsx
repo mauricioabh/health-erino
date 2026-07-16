@@ -11,10 +11,11 @@ export default async function EditarMedicamentoPage({
 }) {
   const { id } = await params;
   const rows = (await sql`
-    select id, nombre, descripcion, fecha_caducidad, stock from public.medicamentos
+    select id, user_id, nombre, descripcion, fecha_caducidad, stock from public.medicamentos
     where id = ${id}
   `) as Array<{
     id: string;
+    user_id: string;
     nombre: string;
     descripcion: string | null;
     fecha_caducidad: string | null;
@@ -26,11 +27,16 @@ export default async function EditarMedicamentoPage({
 
   return (
     <div className="max-w-lg">
-      <Link href="/admin" className="flex items-center gap-1.5 text-sm text-slate-400 hover:text-white mb-2 transition-colors w-fit">
+      <Link
+        href="/admin"
+        className="flex items-center gap-1.5 text-sm text-slate-400 hover:text-white mb-2 transition-colors w-fit"
+      >
         <ArrowLeft className="h-3.5 w-3.5" />
         Volver
       </Link>
-      <h1 className="text-base font-bold text-white mb-3">Editar medicamento</h1>
+      <h1 className="text-base font-bold text-white mb-3">
+        Editar medicamento
+      </h1>
       <EditarForm medicamento={data} />
     </div>
   );
