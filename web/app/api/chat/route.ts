@@ -64,7 +64,13 @@ async function classifyUserMessage(userMessage: string) {
 export async function POST(request: Request) {
   const { userId } = await auth({ acceptsToken: "session_token" });
   if (!userId) {
-    return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+    return NextResponse.json(
+      { error: "No autorizado" },
+      {
+        status: 401,
+        headers: { "Cache-Control": "no-store, max-age=0, must-revalidate" },
+      },
+    );
   }
 
   let body: { messages?: Array<{ role?: string; content?: string }> } = {};
