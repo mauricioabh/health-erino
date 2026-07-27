@@ -10,4 +10,8 @@ issue_label_filter:
 archive_documents:
   enabled: true
   title_prefix: "OpenSpec:"
-  documents: {}
+  documents:
+    "medicamentos-mobile-list":
+      id: "be4cdd1b-10ea-48f9-b451-4f1ff21c3fa4"
+      url: "https://linear.app/wayool/document/openspec-medicamentos-mobile-list-e2d47d460ad4"
+      title: "OpenSpec: medicamentos-mobile-list"
