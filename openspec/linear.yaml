@@ -1,0 +1,13 @@
+team:
+  id: "918d1d41-95ee-429a-976f-e380f65feb8b"
+  key: "WAY"
+  name: "Wayool"
+project:
+  id: "3a586421-4cec-4132-821f-78dc66d08cc1"
+  name: "health-erino"
+issue_label_filter:
+  name: "HLT"
+archive_documents:
+  enabled: true
+  title_prefix: "OpenSpec:"
+  documents: {}
