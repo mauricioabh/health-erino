@@ -9,7 +9,9 @@ const fadeInUp = {
   animate: { opacity: 1, y: 0 },
   transition: { duration: 0.4 },
 };
-const stagger = { animate: { transition: { staggerChildren: 0.08, delayChildren: 0.1 } } };
+const stagger = {
+  animate: { transition: { staggerChildren: 0.08, delayChildren: 0.1 } },
+};
 
 const steps = [
   {
@@ -69,6 +71,11 @@ const accentStyles: Record<
 };
 
 export default function HomePage() {
+  const hasValidClerkKey =
+    typeof process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY === "string" &&
+    process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY.startsWith("pk_") &&
+    !process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY.includes("placeholder");
+
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-b from-slate-900 via-slate-800/95 to-slate-900">
       {/* Header: sin asistente de voz — para no logueados el CTA es login */}
@@ -78,8 +85,13 @@ export default function HomePage() {
         transition={{ duration: 0.35 }}
         className="flex items-center justify-between px-6 py-4 border-b border-white/10"
       >
-        <Link href="/" className="flex items-center gap-2 hover:opacity-90 transition-opacity">
-          <span className="text-2xl" aria-hidden>💊</span>
+        <Link
+          href="/"
+          className="flex items-center gap-2 hover:opacity-90 transition-opacity"
+        >
+          <span className="text-2xl" aria-hidden>
+            💊
+          </span>
           <span className="text-xl font-semibold text-white">Health-erino</span>
         </Link>
         <span className="text-slate-400 text-sm">Gestión de medicamentos</span>
@@ -103,18 +115,24 @@ export default function HomePage() {
             variants={fadeInUp}
             className="mt-6 text-lg text-slate-300 max-w-xl"
           >
-            Inicia sesión y lleva el control de stock, caducidades y consultas por voz con IA.
-            Resultados ajustados a tu inventario.
+            Inicia sesión y lleva el control de stock, caducidades y consultas
+            por voz con IA. Resultados ajustados a tu inventario.
           </motion.p>
-          <motion.ul variants={fadeInUp} className="mt-8 space-y-3 text-slate-300">
+          <motion.ul
+            variants={fadeInUp}
+            className="mt-8 space-y-3 text-slate-300"
+          >
             <li className="flex items-center gap-2">
-              <span className="text-emerald-400">✓</span> Panel de administración
+              <span className="text-emerald-400">✓</span> Panel de
+              administración
             </li>
             <li className="flex items-center gap-2">
-              <span className="text-emerald-400">✓</span> Asistente por voz (Gemini)
+              <span className="text-emerald-400">✓</span> Asistente por voz
+              (Gemini)
             </li>
             <li className="flex items-center gap-2">
-              <span className="text-emerald-400">✓</span> Sincronización desde hoja de cálculo
+              <span className="text-emerald-400">✓</span> Sincronización desde
+              hoja de cálculo
             </li>
           </motion.ul>
           <motion.p variants={fadeInUp} className="mt-6">
@@ -134,48 +152,59 @@ export default function HomePage() {
           className="flex-shrink-0 w-full lg:w-[400px]"
         >
           <div className="bg-slate-800/90 backdrop-blur-xl rounded-2xl border border-white/10 px-8 py-8 shadow-xl hover:border-white/20 transition-colors overflow-hidden">
-            <SignIn
-              routing="hash"
-              signUpUrl="/sign-up"
-              forceRedirectUrl="/admin"
-              fallbackRedirectUrl="/admin"
-              appearance={{
-                baseTheme: undefined,
-                variables: {
-                  colorBackground: "rgb(30 41 59 / 0.9)",
-                  colorInputBackground: "rgb(30 41 59)",
-                  colorInputText: "#f8fafc",
-                  colorText: "#94a3b8",
-                  colorTextSecondary: "#64748b",
-                  colorPrimary: "#4f46e5",
-                  colorDanger: "#ef4444",
-                  borderRadius: "0.75rem",
-                },
-                elements: {
-                  rootBox: "w-full",
-                  card: "shadow-none bg-transparent p-0",
-                  cardBox: "shadow-none max-w-full",
-                  headerTitle: "hidden",
-                  headerSubtitle: "hidden",
-                  socialButtonsBlockButton: "bg-slate-700 hover:bg-slate-600 border border-white/10 text-white py-3",
-                  socialButtonsBlockButtonText: "font-medium",
-                  dividerLine: "bg-white/10",
-                  dividerText: "text-slate-500 text-sm",
-                  formFieldLabel: "text-slate-300",
-                  formFieldInput: "bg-slate-700/80 border-white/10 text-white py-3 px-4",
-                  formButtonPrimary: "bg-indigo-600 hover:bg-indigo-500 py-3 mt-2",
-                  formActions: "gap-3",
-                  footerAction: "pt-4 mt-4 border-t border-white/10",
-                  footerActionLink: "text-indigo-400 hover:text-indigo-300",
-                  identityPreviewEditButton: "text-indigo-400",
-                  formFieldAction: "text-indigo-400 hover:text-indigo-300",
-                },
-                layout: {
-                  socialButtonsPlacement: "top",
-                  socialButtonsVariant: "blockButton",
-                },
-              }}
-            />
+            {hasValidClerkKey ? (
+              <SignIn
+                routing="hash"
+                signUpUrl="/sign-up"
+                forceRedirectUrl="/admin"
+                fallbackRedirectUrl="/admin"
+                appearance={{
+                  baseTheme: undefined,
+                  variables: {
+                    colorBackground: "rgb(30 41 59 / 0.9)",
+                    colorInputBackground: "rgb(30 41 59)",
+                    colorInputText: "#f8fafc",
+                    colorText: "#94a3b8",
+                    colorTextSecondary: "#64748b",
+                    colorPrimary: "#4f46e5",
+                    colorDanger: "#ef4444",
+                    borderRadius: "0.75rem",
+                  },
+                  elements: {
+                    rootBox: "w-full",
+                    card: "shadow-none bg-transparent p-0",
+                    cardBox: "shadow-none max-w-full",
+                    headerTitle: "hidden",
+                    headerSubtitle: "hidden",
+                    socialButtonsBlockButton:
+                      "bg-slate-700 hover:bg-slate-600 border border-white/10 text-white py-3",
+                    socialButtonsBlockButtonText: "font-medium",
+                    dividerLine: "bg-white/10",
+                    dividerText: "text-slate-500 text-sm",
+                    formFieldLabel: "text-slate-300",
+                    formFieldInput:
+                      "bg-slate-700/80 border-white/10 text-white py-3 px-4",
+                    formButtonPrimary:
+                      "bg-indigo-600 hover:bg-indigo-500 py-3 mt-2",
+                    formActions: "gap-3",
+                    footerAction: "pt-4 mt-4 border-t border-white/10",
+                    footerActionLink: "text-indigo-400 hover:text-indigo-300",
+                    identityPreviewEditButton: "text-indigo-400",
+                    formFieldAction: "text-indigo-400 hover:text-indigo-300",
+                  },
+                  layout: {
+                    socialButtonsPlacement: "top",
+                    socialButtonsVariant: "blockButton",
+                  },
+                }}
+              />
+            ) : (
+              <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 text-sm text-amber-200">
+                Auth de Clerk no está configurado en este entorno de preview.
+                Configura `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` para habilitar
+                inicio de sesión embebido.
+              </div>
+            )}
           </div>
         </motion.section>
       </main>
@@ -193,14 +222,19 @@ export default function HomePage() {
         </motion.h2>
         <div className="grid md:grid-cols-3 gap-6 md:gap-8">
           {steps.map((item, i) => {
-            const style = accentStyles[item.accent as keyof typeof accentStyles];
+            const style =
+              accentStyles[item.accent as keyof typeof accentStyles];
             return (
               <motion.div
                 key={item.step}
                 initial={{ opacity: 0, y: 32 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: "-80px" }}
-                transition={{ duration: 0.5, delay: i * 0.12, ease: [0.22, 1, 0.36, 1] }}
+                transition={{
+                  duration: 0.5,
+                  delay: i * 0.12,
+                  ease: [0.22, 1, 0.36, 1],
+                }}
                 whileHover={{
                   y: -6,
                   boxShadow: style.glow,
@@ -208,14 +242,22 @@ export default function HomePage() {
                 }}
                 className={`group relative overflow-hidden rounded-xl border border-white/10 bg-slate-800/70 ${style.border} ${style.hover} pl-6 pr-6 pt-7 pb-7 transition-all duration-300 cursor-default backdrop-blur-sm`}
               >
-                <span className={`absolute top-4 right-5 text-6xl font-bold tabular-nums ${style.num}`}>
+                <span
+                  className={`absolute top-4 right-5 text-6xl font-bold tabular-nums ${style.num}`}
+                >
                   {item.step}
                 </span>
-                <div className={`relative inline-flex w-12 h-12 rounded-xl items-center justify-center text-xl mb-5 ${style.icon}`}>
+                <div
+                  className={`relative inline-flex w-12 h-12 rounded-xl items-center justify-center text-xl mb-5 ${style.icon}`}
+                >
                   {item.icon}
                 </div>
-                <h3 className="relative font-semibold text-white text-lg mb-2.5 pr-12">{item.title}</h3>
-                <p className="relative text-slate-400 text-[15px] leading-relaxed">{item.text}</p>
+                <h3 className="relative font-semibold text-white text-lg mb-2.5 pr-12">
+                  {item.title}
+                </h3>
+                <p className="relative text-slate-400 text-[15px] leading-relaxed">
+                  {item.text}
+                </p>
               </motion.div>
             );
           })}
@@ -233,9 +275,10 @@ export default function HomePage() {
           Para quién es Health-erino
         </h2>
         <p className="text-slate-400 text-center max-w-2xl mx-auto">
-          Pensado para hogares, cuidadores o pequeños dispensarios que quieren tener bajo control
-          qué medicamentos tienen, cuánto stock y cuándo caducan, y poder preguntar en lenguaje
-          natural con asistente de voz o chat.
+          Pensado para hogares, cuidadores o pequeños dispensarios que quieren
+          tener bajo control qué medicamentos tienen, cuánto stock y cuándo
+          caducan, y poder preguntar en lenguaje natural con asistente de voz o
+          chat.
         </p>
       </motion.section>
 
