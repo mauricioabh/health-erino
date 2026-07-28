@@ -3,9 +3,7 @@
 ## Purpose
 
 Responsive medications list for the admin PWA: compact rows on small viewports with expiry status indicators and a detail bottom sheet for full info and edit/delete actions.
-
 ## Requirements
-
 ### Requirement: Compact medication list on small viewports
 
 On viewports below the `md` breakpoint, the admin medications list SHALL show a compact list instead of the wide multi-column table. Each row MUST display the medication name and expiry as `YY/MM` (or an em dash when expiry is missing). On viewports at or above `md`, the existing table layout SHALL remain available.
@@ -52,3 +50,18 @@ Tapping a compact row MUST open a bottom sheet showing the medication name, desc
 
 - **WHEN** the user chooses Delete in the detail sheet
 - **THEN** the existing delete confirmation dialog opens for that medication
+
+### Requirement: No duplicate page title on mobile
+
+On viewports below `md`, the admin medications page SHALL NOT display the "Panel de medicamentos" heading because the app header already identifies the context.
+
+#### Scenario: Title hidden on mobile
+
+- **WHEN** the user views `/admin` on a viewport below `md`
+- **THEN** the "Panel de medicamentos" heading is not visible
+
+#### Scenario: Title visible on desktop
+
+- **WHEN** the user views `/admin` on a viewport at or above `md`
+- **THEN** the "Panel de medicamentos" heading remains visible
+

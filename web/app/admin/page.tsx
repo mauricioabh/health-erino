@@ -9,7 +9,7 @@ import { AdminSyncButton } from "./sync-button";
 import { DownloadTemplateButton } from "./download-template-button";
 import { NuevoMedicamentoModal } from "./nuevo-medicamento-modal";
 import { MedicamentosList } from "./medicamentos-list";
-import { MedicamentosToolbar } from "./medicamentos-toolbar";
+import { MedicamentosToolbar, MedicamentosCount } from "./medicamentos-toolbar";
 import type { Medicamento } from "@/lib/types";
 import type { CaducidadFilter } from "@/lib/db/medicamentos";
 
@@ -66,14 +66,19 @@ export default async function AdminPage({
     created_at: m.created_at != null ? String(m.created_at) : undefined,
   }));
 
+  const isFiltered =
+    medicamentos.length < totalCount ||
+    q.trim() !== "" ||
+    caducidadFilter !== "all";
+
   return (
     <div className="w-full">
-      <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
-        <h1 className="flex items-center gap-1.5 text-lg font-bold text-white">
+      <div className="flex flex-wrap items-center justify-between gap-2 mb-3 md:mb-4">
+        <h1 className="hidden md:flex items-center gap-1.5 text-lg font-bold text-white">
           <Pill className="h-5 w-5 text-indigo-400 shrink-0" />
           Panel de medicamentos
         </h1>
-        <div className="flex flex-wrap items-center gap-1.5">
+        <div className="flex w-full md:w-auto gap-1 md:gap-1.5 md:flex-wrap md:items-center">
           <DownloadTemplateButton />
           <AdminSyncButton />
           <NuevoMedicamentoModal />
@@ -87,6 +92,13 @@ export default async function AdminPage({
         totalCount={totalCount}
         showingCount={medicamentos.length}
       />
+      <div className="md:hidden mb-2">
+        <MedicamentosCount
+          totalCount={totalCount}
+          showingCount={medicamentos.length}
+          isFiltered={isFiltered}
+        />
+      </div>
       <MedicamentosList initialData={medicamentos} />
     </div>
   );

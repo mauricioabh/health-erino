@@ -6,7 +6,10 @@ import { Upload } from "lucide-react";
 export function AdminSyncButton() {
   const inputRef = useRef<HTMLInputElement>(null);
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState<{ type: "ok" | "error"; text: string } | null>(null);
+  const [message, setMessage] = useState<{
+    type: "ok" | "error";
+    text: string;
+  } | null>(null);
 
   async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -26,7 +29,10 @@ export function AdminSyncButton() {
       });
       const uploadData = await uploadRes.json().catch(() => ({}));
       if (!uploadRes.ok) {
-        setMessage({ type: "error", text: uploadData.error || "Error al subir el archivo" });
+        setMessage({
+          type: "error",
+          text: uploadData.error || "Error al subir el archivo",
+        });
         setLoading(false);
         if (inputRef.current) inputRef.current.value = "";
         return;
@@ -38,7 +44,10 @@ export function AdminSyncButton() {
       });
       const syncData = await syncRes.json().catch(() => ({}));
       if (!syncRes.ok) {
-        setMessage({ type: "error", text: syncData.error || "Error en la sincronización" });
+        setMessage({
+          type: "error",
+          text: syncData.error || "Error en la sincronización",
+        });
         setLoading(false);
         if (inputRef.current) inputRef.current.value = "";
         return;
@@ -57,7 +66,7 @@ export function AdminSyncButton() {
   }
 
   return (
-    <div>
+    <div className="flex flex-1 md:flex-none min-w-0">
       <input
         ref={inputRef}
         type="file"
@@ -70,13 +79,19 @@ export function AdminSyncButton() {
         type="button"
         onClick={() => inputRef.current?.click()}
         disabled={loading}
-        className="flex items-center gap-1.5 rounded-md bg-emerald-600 px-3 py-1.5 text-sm text-white hover:bg-emerald-500 disabled:opacity-50 transition-colors"
+        aria-label={loading ? "Subiendo CSV" : "Subir CSV inicial"}
+        title={loading ? "Subiendo…" : "Subir CSV inicial"}
+        className="flex flex-1 md:flex-none items-center justify-center gap-1.5 rounded-md bg-emerald-600 px-2 py-2 md:px-3 md:py-1.5 text-sm text-white hover:bg-emerald-500 disabled:opacity-50 transition-colors"
       >
-        <Upload className="h-3.5 w-3.5 shrink-0" />
-        {loading ? "Subiendo…" : "Subir CSV inicial"}
+        <Upload className="h-4 w-4 md:h-3.5 md:w-3.5 shrink-0" />
+        <span className="hidden md:inline">
+          {loading ? "Subiendo…" : "Subir CSV inicial"}
+        </span>
       </button>
       {message && (
-        <p className={`mt-1 text-xs ${message.type === "ok" ? "text-emerald-400" : "text-red-400"}`}>
+        <p
+          className={`mt-1 text-xs ${message.type === "ok" ? "text-emerald-400" : "text-red-400"}`}
+        >
           {message.text}
         </p>
       )}
