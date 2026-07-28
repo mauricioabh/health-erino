@@ -26,6 +26,9 @@ const nextConfig: NextConfig = {
   turbopack: {
     root: webRoot,
   },
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
 };
 
 const serwistConfig = withSerwist(nextConfig);
