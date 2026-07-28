@@ -56,10 +56,12 @@ export function NuevoMedicamentoModal() {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="flex items-center gap-1.5 rounded-md bg-indigo-600 px-3 py-1.5 text-sm text-white font-medium hover:bg-indigo-500 transition-colors"
+        aria-label="Nuevo medicamento"
+        title="Nuevo medicamento"
+        className="flex flex-1 md:flex-none items-center justify-center gap-1.5 rounded-md bg-indigo-600 px-2 py-2 md:px-3 md:py-1.5 text-sm text-white font-medium hover:bg-indigo-500 transition-colors"
       >
-        <Plus className="h-3.5 w-3.5 shrink-0" />
-        Nuevo medicamento
+        <Plus className="h-4 w-4 md:h-3.5 md:w-3.5 shrink-0" />
+        <span className="hidden md:inline">Nuevo medicamento</span>
       </button>
 
       {open && (
@@ -76,7 +78,10 @@ export function NuevoMedicamentoModal() {
           />
           <div className="relative w-full max-w-lg rounded-lg border border-white/10 bg-slate-800/95 shadow-xl">
             <div className="flex items-center justify-between border-b border-white/10 px-4 py-2">
-              <h2 id="nuevo-medicamento-title" className="text-base font-bold text-white">
+              <h2
+                id="nuevo-medicamento-title"
+                className="text-base font-bold text-white"
+              >
                 Nuevo medicamento
               </h2>
               <button
@@ -90,7 +95,10 @@ export function NuevoMedicamentoModal() {
             </div>
             <form onSubmit={handleSubmit} className="space-y-3 p-4">
               <div>
-                <label htmlFor="modal-nombre" className="block text-xs font-medium text-slate-300 mb-0.5">
+                <label
+                  htmlFor="modal-nombre"
+                  className="block text-xs font-medium text-slate-300 mb-0.5"
+                >
                   Nombre
                 </label>
                 <input
@@ -102,7 +110,10 @@ export function NuevoMedicamentoModal() {
                 />
               </div>
               <div>
-                <label htmlFor="modal-descripcion" className="block text-xs font-medium text-slate-300 mb-0.5">
+                <label
+                  htmlFor="modal-descripcion"
+                  className="block text-xs font-medium text-slate-300 mb-0.5"
+                >
                   Descripcion
                 </label>
                 <textarea
@@ -114,7 +125,10 @@ export function NuevoMedicamentoModal() {
                 />
               </div>
               <div>
-                <label htmlFor="modal-fecha" className="block text-xs font-medium text-slate-300 mb-0.5">
+                <label
+                  htmlFor="modal-fecha"
+                  className="block text-xs font-medium text-slate-300 mb-0.5"
+                >
                   Fecha caducidad
                 </label>
                 <input
@@ -126,7 +140,10 @@ export function NuevoMedicamentoModal() {
                 />
               </div>
               <div>
-                <label htmlFor="modal-stock" className="block text-xs font-medium text-slate-300 mb-0.5">
+                <label
+                  htmlFor="modal-stock"
+                  className="block text-xs font-medium text-slate-300 mb-0.5"
+                >
                   Stock
                 </label>
                 <input
