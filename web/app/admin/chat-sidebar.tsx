@@ -5,6 +5,24 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { SparklesIcon } from "./sparkles-icon";
 import { X } from "lucide-react";
 
+function friendlyChatError(message: string | undefined): string {
+  const raw = message?.trim() ?? "";
+  if (!raw) {
+    return "Error al conectar. Comprueba la conexión o prueba más tarde.";
+  }
+  if (/thought_signature|function call is missing/i.test(raw)) {
+    return "Hubo un problema al consultar el asistente. Intenta de nuevo en unos segundos.";
+  }
+  if (/GOOGLE_GENERATIVE_AI|API key|quota|rate limit/i.test(raw)) {
+    return "El servicio de IA no está disponible ahora. Intenta más tarde.";
+  }
+  // Never show raw provider/stack traces in the UI.
+  if (raw.length > 180 || /at\s+\S+\s+\(/.test(raw)) {
+    return "Hubo un problema al consultar el asistente. Intenta de nuevo en unos segundos.";
+  }
+  return raw;
+}
+
 export function ChatSidebarTrigger() {
   const [open, setOpen] = useState(false);
   const { messages, append, isLoading, input, setInput, handleSubmit, error } =
@@ -199,8 +217,7 @@ export function ChatSidebarTrigger() {
             </ul>
             {error && (
               <p className="text-red-400 text-sm mt-2">
-                {error.message ||
-                  "Error al conectar. Comprueba la conexión o prueba más tarde."}
+                {friendlyChatError(error.message)}
               </p>
             )}
           </div>

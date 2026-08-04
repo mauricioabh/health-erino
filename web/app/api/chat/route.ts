@@ -10,10 +10,9 @@ import {
 import { randomUUID } from "node:crypto";
 import * as Sentry from "@sentry/nextjs";
 import {
-  createMedicamentosTools,
-  MAX_TOOL_STEPS,
-  SYSTEM_PROMPT,
-} from "@/lib/gemini-tools";
+  buildChatSystemPrompt,
+  loadUserMedicamentosInventory,
+} from "@/lib/chat/inventory-context";
 import {
   flushLangfuse,
   getLangfuse,
@@ -22,6 +21,7 @@ import {
 } from "@/lib/langfuse";
 import {
   EMPTY_ASSISTANT_FALLBACK,
+  FRIENDLY_CHAT_ERROR,
   GEMINI_CHAT_MODEL,
   MAX_OUTPUT_TOKENS_CHAT,
   MAX_OUTPUT_TOKENS_CLASSIFIER,
@@ -42,14 +42,17 @@ import { NextResponse } from "next/server";
 
 export const maxDuration = 30;
 
-function rejectionResponse(message: string, reason: string) {
-  console.info("[llm-security] pre_check_hit", { reason });
-  // useChat expects the AI SDK data stream protocol, not JSON.
+function assistantTextResponse(message: string) {
   return createDataStreamResponse({
     execute: (dataStream) => {
       dataStream.write(formatDataStreamPart("text", message));
     },
   });
+}
+
+function rejectionResponse(message: string, reason: string) {
+  console.info("[llm-security] pre_check_hit", { reason });
+  return assistantTextResponse(message);
 }
 
 async function classifyUserMessage(userMessage: string) {
@@ -66,6 +69,7 @@ async function classifyUserMessage(userMessage: string) {
     Sentry.captureException(err, {
       tags: { route: "chat", phase: "preflight" },
     });
+    // Fail open: symptom recommendations must not die because the classifier failed.
     return null;
   }
 }
@@ -86,10 +90,7 @@ export async function POST(request: Request) {
   try {
     body = await request.json();
   } catch {
-    return new Response(JSON.stringify({ error: "Invalid JSON" }), {
-      status: 400,
-      headers: { "Content-Type": "application/json" },
-    });
+    return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
   const mapped = sanitizeChatMessages(body.messages ?? []);
@@ -122,14 +123,26 @@ export async function POST(request: Request) {
   const url = new URL(request.url);
   const stream = url.searchParams.get("stream") !== "false";
   const sessionId = request.headers.get("x-session-id")?.trim() || randomUUID();
-  const tools = createMedicamentosTools(userId);
+
+  let systemPrompt: string;
+  let inventoryCount = 0;
+  try {
+    const inventory = await loadUserMedicamentosInventory(userId);
+    inventoryCount = inventory.length;
+    systemPrompt = buildChatSystemPrompt(inventory);
+  } catch (err) {
+    Sentry.captureException(err, {
+      tags: { route: "chat", phase: "inventory" },
+    });
+    return assistantTextResponse(FRIENDLY_CHAT_ERROR);
+  }
 
   const langfuse = getLangfuse();
   const trace = langfuse?.trace({
     name: "voice-chat-session",
     sessionId,
     userId,
-    metadata: { stream },
+    metadata: { stream, inventoryCount, tools: false },
   });
 
   try {
@@ -142,46 +155,58 @@ export async function POST(request: Request) {
 
       return createDataStreamResponse({
         execute: async (dataStream) => {
-          const result = streamText({
-            model: google(GEMINI_CHAT_MODEL),
-            system: SYSTEM_PROMPT,
-            messages: mapped,
-            tools,
-            maxSteps: MAX_TOOL_STEPS,
-            maxTokens: MAX_OUTPUT_TOKENS_CHAT,
-            onFinish: async ({ text, toolCalls, usage }) => {
-              runPostCheckObservability({
-                message: text,
-                stream: true,
-              });
-              generation?.end({
-                output: redactForTrace(text),
-                metadata: {
-                  toolCallCount: toolCalls?.length ?? 0,
-                  usage,
-                  emptyText: !text?.trim(),
-                },
-              });
-              await flushLangfuse();
-            },
-            onError: ({ error }) => {
-              const err =
-                error instanceof Error ? error : new Error(String(error));
-              generation?.end({ level: "ERROR", statusMessage: err.message });
-              Sentry.captureException(err, {
-                tags: { route: "chat", stream: "true" },
-              });
-            },
-          });
+          try {
+            // No Gemini tools: avoids thought_signature multi-step failures.
+            const result = streamText({
+              model: google(GEMINI_CHAT_MODEL),
+              system: systemPrompt,
+              messages: mapped,
+              maxTokens: MAX_OUTPUT_TOKENS_CHAT,
+              onFinish: async ({ text, usage }) => {
+                runPostCheckObservability({
+                  message: text,
+                  stream: true,
+                });
+                generation?.end({
+                  output: redactForTrace(text),
+                  metadata: {
+                    usage,
+                    emptyText: !text?.trim(),
+                    inventoryCount,
+                  },
+                });
+                await flushLangfuse();
+              },
+              onError: ({ error }) => {
+                const err =
+                  error instanceof Error ? error : new Error(String(error));
+                generation?.end({
+                  level: "ERROR",
+                  statusMessage: err.message,
+                });
+                Sentry.captureException(err, {
+                  tags: { route: "chat", stream: "true" },
+                });
+              },
+            });
 
-          result.mergeIntoDataStream(dataStream);
+            result.mergeIntoDataStream(dataStream);
 
-          // Gemini sometimes finishes after tools with no assistant text.
-          const text = await result.text;
-          if (!text?.trim()) {
-            dataStream.write(
-              formatDataStreamPart("text", EMPTY_ASSISTANT_FALLBACK),
-            );
+            const text = await result.text;
+            if (!text?.trim()) {
+              dataStream.write(
+                formatDataStreamPart("text", EMPTY_ASSISTANT_FALLBACK),
+              );
+            }
+          } catch (error) {
+            const err =
+              error instanceof Error ? error : new Error(String(error));
+            generation?.end({ level: "ERROR", statusMessage: err.message });
+            Sentry.captureException(err, {
+              tags: { route: "chat", stream: "true", phase: "execute" },
+            });
+            dataStream.write(formatDataStreamPart("text", FRIENDLY_CHAT_ERROR));
+            await flushLangfuse();
           }
         },
         onError: (error) => {
@@ -189,7 +214,8 @@ export async function POST(request: Request) {
           Sentry.captureException(err, {
             tags: { route: "chat", stream: "true", phase: "data_stream" },
           });
-          return err.message || "Error al generar la respuesta";
+          // Never surface raw provider errors (e.g. thought_signature) to the UI.
+          return FRIENDLY_CHAT_ERROR;
         },
       });
     }
@@ -202,10 +228,8 @@ export async function POST(request: Request) {
 
     const result = await generateText({
       model: google(GEMINI_CHAT_MODEL),
-      system: SYSTEM_PROMPT,
+      system: systemPrompt,
       messages: mapped,
-      tools,
-      maxSteps: MAX_TOOL_STEPS,
       maxTokens: MAX_OUTPUT_TOKENS_CHAT,
     });
 
@@ -219,9 +243,9 @@ export async function POST(request: Request) {
     generation?.end({
       output: redactForTrace(content),
       metadata: {
-        toolCallCount: result.toolCalls?.length ?? 0,
         usage: result.usage,
         emptyText: !result.text?.trim(),
+        inventoryCount,
       },
     });
     await flushLangfuse();
@@ -232,9 +256,7 @@ export async function POST(request: Request) {
     trace?.update({ metadata: { error: message } });
     Sentry.captureException(err, { tags: { route: "chat" } });
     await flushLangfuse();
-    return new Response(JSON.stringify({ error: message }), {
-      status: 500,
-      headers: { "Content-Type": "application/json" },
-    });
+    // Stream-compatible friendly reply so useChat does not show a red raw error.
+    return assistantTextResponse(FRIENDLY_CHAT_ERROR);
   }
 }

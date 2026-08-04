@@ -11,6 +11,8 @@
     "db:migrate": "node scripts/migrate-neon.mjs",
     "test:auth": "vitest run tests/auth",
     "test:llm-security": "vitest run tests/llm-security",
+    "test:chat": "vitest run tests/chat",
+    "test:unit": "vitest run tests/auth tests/llm-security tests/chat",
     "pwa:icons": "node scripts/generate-pwa-icons.mjs",
     "test:observability": "node scripts/sentry-probe.mjs",
     "test:sentry-probe": "npm run test:observability"
