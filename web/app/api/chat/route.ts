@@ -1,6 +1,12 @@
 import { auth } from "@clerk/nextjs/server";
 import { google } from "@ai-sdk/google";
-import { generateObject, streamText, generateText } from "ai";
+import {
+  createDataStreamResponse,
+  formatDataStreamPart,
+  generateObject,
+  streamText,
+  generateText,
+} from "ai";
 import { randomUUID } from "node:crypto";
 import * as Sentry from "@sentry/nextjs";
 import {
@@ -15,6 +21,7 @@ import {
   redactMessages,
 } from "@/lib/langfuse";
 import {
+  EMPTY_ASSISTANT_FALLBACK,
   GEMINI_CHAT_MODEL,
   MAX_OUTPUT_TOKENS_CHAT,
   MAX_OUTPUT_TOKENS_CLASSIFIER,
@@ -29,6 +36,7 @@ import { CLASSIFIER_SYSTEM_PROMPT } from "@/lib/llm-security/prompts";
 import {
   getLastUserMessage,
   sanitizeChatMessages,
+  unwrapUntrustedUserInput,
 } from "@/lib/llm-security/sanitize-input";
 import { NextResponse } from "next/server";
 
@@ -36,10 +44,11 @@ export const maxDuration = 30;
 
 function rejectionResponse(message: string, reason: string) {
   console.info("[llm-security] pre_check_hit", { reason });
-  return Response.json({
-    category: reason,
-    content: message,
-    pre_check_hit: true,
+  // useChat expects the AI SDK data stream protocol, not JSON.
+  return createDataStreamResponse({
+    execute: (dataStream) => {
+      dataStream.write(formatDataStreamPart("text", message));
+    },
   });
 }
 
@@ -49,7 +58,7 @@ async function classifyUserMessage(userMessage: string) {
       model: google(GEMINI_CHAT_MODEL),
       schema: llmResponseSchema,
       system: CLASSIFIER_SYSTEM_PROMPT,
-      prompt: userMessage,
+      prompt: unwrapUntrustedUserInput(userMessage),
       maxTokens: MAX_OUTPUT_TOKENS_CLASSIFIER,
     });
     return object;
@@ -131,36 +140,58 @@ export async function POST(request: Request) {
         input: redactMessages(mapped),
       });
 
-      const result = streamText({
-        model: google(GEMINI_CHAT_MODEL),
-        system: SYSTEM_PROMPT,
-        messages: mapped,
-        tools,
-        maxSteps: MAX_TOOL_STEPS,
-        maxTokens: MAX_OUTPUT_TOKENS_CHAT,
-        onFinish: async ({ text, toolCalls, usage }) => {
-          runPostCheckObservability({
-            message: text,
-            stream: true,
-          });
-          generation?.end({
-            output: redactForTrace(text),
-            metadata: {
-              toolCallCount: toolCalls?.length ?? 0,
-              usage,
+      return createDataStreamResponse({
+        execute: async (dataStream) => {
+          const result = streamText({
+            model: google(GEMINI_CHAT_MODEL),
+            system: SYSTEM_PROMPT,
+            messages: mapped,
+            tools,
+            maxSteps: MAX_TOOL_STEPS,
+            maxTokens: MAX_OUTPUT_TOKENS_CHAT,
+            onFinish: async ({ text, toolCalls, usage }) => {
+              runPostCheckObservability({
+                message: text,
+                stream: true,
+              });
+              generation?.end({
+                output: redactForTrace(text),
+                metadata: {
+                  toolCallCount: toolCalls?.length ?? 0,
+                  usage,
+                  emptyText: !text?.trim(),
+                },
+              });
+              await flushLangfuse();
+            },
+            onError: ({ error }) => {
+              const err =
+                error instanceof Error ? error : new Error(String(error));
+              generation?.end({ level: "ERROR", statusMessage: err.message });
+              Sentry.captureException(err, {
+                tags: { route: "chat", stream: "true" },
+              });
             },
           });
-          await flushLangfuse();
+
+          result.mergeIntoDataStream(dataStream);
+
+          // Gemini sometimes finishes after tools with no assistant text.
+          const text = await result.text;
+          if (!text?.trim()) {
+            dataStream.write(
+              formatDataStreamPart("text", EMPTY_ASSISTANT_FALLBACK),
+            );
+          }
         },
-        onError: ({ error }) => {
+        onError: (error) => {
           const err = error instanceof Error ? error : new Error(String(error));
-          generation?.end({ level: "ERROR", statusMessage: err.message });
           Sentry.captureException(err, {
-            tags: { route: "chat", stream: "true" },
+            tags: { route: "chat", stream: "true", phase: "data_stream" },
           });
+          return err.message || "Error al generar la respuesta";
         },
       });
-      return result.toDataStreamResponse();
     }
 
     const generation = trace?.generation({
@@ -178,21 +209,24 @@ export async function POST(request: Request) {
       maxTokens: MAX_OUTPUT_TOKENS_CHAT,
     });
 
+    const content = result.text?.trim() || EMPTY_ASSISTANT_FALLBACK;
+
     runPostCheckObservability({
-      message: result.text,
+      message: content,
       stream: false,
     });
 
     generation?.end({
-      output: redactForTrace(result.text),
+      output: redactForTrace(content),
       metadata: {
         toolCallCount: result.toolCalls?.length ?? 0,
         usage: result.usage,
+        emptyText: !result.text?.trim(),
       },
     });
     await flushLangfuse();
 
-    return Response.json({ content: result.text });
+    return Response.json({ content });
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     trace?.update({ metadata: { error: message } });

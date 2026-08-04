@@ -26,7 +26,7 @@ vi.mock("@ai-sdk/google", () => ({
 
 vi.mock("@/lib/gemini-tools", () => ({
   createMedicamentosTools: vi.fn(() => ({})),
-  MAX_TOOL_STEPS: 3,
+  MAX_TOOL_STEPS: 5,
   SYSTEM_PROMPT: "test",
 }));
 

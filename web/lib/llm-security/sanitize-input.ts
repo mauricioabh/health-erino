@@ -9,6 +9,14 @@ function wrapUntrusted(content: string): string {
   return `<untrusted_user_input>${content}</untrusted_user_input>`;
 }
 
+/** Strip wrapper tags so classifiers/pre-checks see the raw user text. */
+export function unwrapUntrustedUserInput(content: string): string {
+  const match = content.match(
+    /^<untrusted_user_input>([\s\S]*)<\/untrusted_user_input>$/,
+  );
+  return match ? match[1] : content;
+}
+
 export function sanitizeChatMessages(
   messages: ChatMessageInput[],
 ): SanitizedMessage[] {

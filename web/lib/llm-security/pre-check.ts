@@ -1,4 +1,5 @@
 import { REJECTION_MESSAGES } from "./constants";
+import { unwrapUntrustedUserInput } from "./sanitize-input";
 import { hasInjectionPattern } from "./untrusted-data-detect";
 import type { PreCheckResult } from "./types";
 
@@ -33,19 +34,12 @@ const INJECTION_PATTERNS: RegExp[] = [
   /reveal\s+(your\s+)?(prompt|instructions)/i,
 ];
 
-function unwrapUntrusted(content: string): string {
-  const match = content.match(
-    /^<untrusted_user_input>([\s\S]*)<\/untrusted_user_input>$/,
-  );
-  return match ? match[1] : content;
-}
-
 function matchBucket(text: string, patterns: RegExp[]): RegExp | undefined {
   return patterns.find((p) => p.test(text));
 }
 
 export function runPreCheck(userContent: string): PreCheckResult {
-  const text = unwrapUntrusted(userContent).trim();
+  const text = unwrapUntrustedUserInput(userContent).trim();
   if (!text) {
     return { blocked: false };
   }
