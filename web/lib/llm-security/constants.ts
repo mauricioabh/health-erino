@@ -11,7 +11,11 @@ export const GEMINI_CHAT_MODEL =
 export const MAX_OUTPUT_TOKENS_CHAT = 1024;
 export const MAX_OUTPUT_TOKENS_CLASSIFIER = 256;
 export const MAX_OUTPUT_TOKENS_ENRICH = 2048;
-export const MAX_TOOL_STEPS = 3;
+/** Enough for get_medicamentos (+ optional search) and a final text reply. */
+export const MAX_TOOL_STEPS = 5;
+
+export const EMPTY_ASSISTANT_FALLBACK =
+  "No pude generar una recomendación esta vez. Comprueba que tengas medicamentos en tu panel e inténtalo de nuevo.";
 
 export const REJECTION_MESSAGES = {
   EMERGENCY:

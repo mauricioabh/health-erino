@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { sanitizeChatMessages } from "@/lib/llm-security/sanitize-input";
+import {
+  sanitizeChatMessages,
+  unwrapUntrustedUserInput,
+} from "@/lib/llm-security/sanitize-input";
 
 describe("sanitize-input", () => {
   it("ignores system role from client", () => {
@@ -17,6 +20,15 @@ describe("sanitize-input", () => {
     ]);
     expect(result[0].content).toContain("<untrusted_user_input>");
     expect(result[0].content).toContain("¿Qué tengo para fiebre?");
+  });
+
+  it("unwraps untrusted tags for classifiers", () => {
+    const wrapped =
+      "<untrusted_user_input>me duele la panza, qué me puedo tomar?</untrusted_user_input>";
+    expect(unwrapUntrustedUserInput(wrapped)).toBe(
+      "me duele la panza, qué me puedo tomar?",
+    );
+    expect(unwrapUntrustedUserInput("sin tags")).toBe("sin tags");
   });
 
   it("truncates long messages", () => {

@@ -7,11 +7,16 @@ import { X } from "lucide-react";
 
 export function ChatSidebarTrigger() {
   const [open, setOpen] = useState(false);
-  const { messages, append, isLoading, input, setInput, handleSubmit, error } = useChat({
-    api: "/api/chat",
-  });
+  const { messages, append, isLoading, input, setInput, handleSubmit, error } =
+    useChat({
+      api: "/api/chat",
+    });
   const [listening, setListening] = useState(false);
-  const recognitionRef = useRef<{ start(): void; stop(): void; lang?: string } | null>(null);
+  const recognitionRef = useRef<{
+    start(): void;
+    stop(): void;
+    lang?: string;
+  } | null>(null);
   const lastSpokenIdRef = useRef<string>("");
 
   const speak = useCallback((text: string) => {
@@ -25,7 +30,11 @@ export function ChatSidebarTrigger() {
 
   const lastAssistant = messages.filter((m) => m.role === "assistant").pop();
   useEffect(() => {
-    if (lastAssistant?.content && !isLoading && lastAssistant.id !== lastSpokenIdRef.current) {
+    if (
+      lastAssistant?.content &&
+      !isLoading &&
+      lastAssistant.id !== lastSpokenIdRef.current
+    ) {
       lastSpokenIdRef.current = lastAssistant.id;
       speak(lastAssistant.content);
     }
@@ -39,21 +48,33 @@ export function ChatSidebarTrigger() {
       continuous: boolean;
       interimResults: boolean;
       lang: string;
-      onresult: ((e: { results: ArrayLike<{ 0: { transcript: string }; length: number }> }) => void) | null;
+      onresult:
+        | ((e: {
+            results: ArrayLike<{ 0: { transcript: string }; length: number }>;
+          }) => void)
+        | null;
       onend: (() => void) | null;
       onerror: (() => void) | null;
     };
-    const win = window as unknown as { SpeechRecognition?: new () => SpeechRecognitionInstance; webkitSpeechRecognition?: new () => SpeechRecognitionInstance };
-    const SpeechRecognitionAPI = win.SpeechRecognition || win.webkitSpeechRecognition;
+    const win = window as unknown as {
+      SpeechRecognition?: new () => SpeechRecognitionInstance;
+      webkitSpeechRecognition?: new () => SpeechRecognitionInstance;
+    };
+    const SpeechRecognitionAPI =
+      win.SpeechRecognition || win.webkitSpeechRecognition;
     if (!SpeechRecognitionAPI) {
-      alert("Tu navegador no soporta reconocimiento de voz. Usa Chrome o Edge.");
+      alert(
+        "Tu navegador no soporta reconocimiento de voz. Usa Chrome o Edge.",
+      );
       return;
     }
     const rec = new SpeechRecognitionAPI();
     rec.continuous = false;
     rec.interimResults = false;
     rec.lang = "es-ES";
-    rec.onresult = (event: { results: ArrayLike<{ 0: { transcript: string }; length: number }> }) => {
+    rec.onresult = (event: {
+      results: ArrayLike<{ 0: { transcript: string }; length: number }>;
+    }) => {
       const transcript = Array.from(event.results)
         .map((r) => (r as { 0: { transcript: string } })[0].transcript)
         .join("");
@@ -117,19 +138,34 @@ export function ChatSidebarTrigger() {
           <div className="flex-1 overflow-y-auto p-3">
             {messages.length === 0 && (
               <p className="text-slate-400 text-sm text-center py-4 leading-relaxed">
-                Usa el micrófono para preguntar en voz alta o escribe tu pregunta en el recuadro. El asistente solo te recomendará medicamentos que tengas en tu lista: por ejemplo, si preguntas qué puedes tomar para un dolor de cabeza o la fiebre, te dirá qué opciones tienes entre los que ya tienes guardados y te avisará si alguno está caducado.
+                Usa el micrófono para preguntar en voz alta o escribe tu
+                pregunta en el recuadro. El asistente solo te recomendará
+                medicamentos que tengas en tu lista: por ejemplo, si preguntas
+                qué puedes tomar para un dolor de cabeza o la fiebre, te dirá
+                qué opciones tienes entre los que ya tienes guardados y te
+                avisará si alguno está caducado.
               </p>
             )}
             <ul className="space-y-2 list-none pl-0">
-              {messages.length > 0 && isLoading && messages[messages.length - 1]?.role === "user" && (
-                <li className="rounded-lg p-2.5 text-sm mr-4 bg-slate-800/90 border border-white/10 text-slate-200">
-                  <span className="text-[11px] font-medium text-slate-400 block mb-0.5">Asistente</span>
-                  <span className="text-slate-400 italic">Pensando...</span>
-                </li>
-              )}
+              {messages.length > 0 &&
+                isLoading &&
+                messages[messages.length - 1]?.role === "user" && (
+                  <li className="rounded-lg p-2.5 text-sm mr-4 bg-slate-800/90 border border-white/10 text-slate-200">
+                    <span className="text-[11px] font-medium text-slate-400 block mb-0.5">
+                      Asistente
+                    </span>
+                    <span className="text-slate-400 italic">Pensando...</span>
+                  </li>
+                )}
               {messages.map((m) => {
-                const isLastAssistant = m.id === messages.filter((x) => x.role === "assistant").pop()?.id;
-                const showLoadingInBubble = m.role === "assistant" && isLastAssistant && isLoading && !m.content?.trim();
+                const isLastAssistant =
+                  m.id ===
+                  messages.filter((x) => x.role === "assistant").pop()?.id;
+                const showLoadingInBubble =
+                  m.role === "assistant" &&
+                  isLastAssistant &&
+                  isLoading &&
+                  !m.content?.trim();
                 return (
                   <li
                     key={m.id}
@@ -142,22 +178,29 @@ export function ChatSidebarTrigger() {
                     <span className="text-[11px] font-medium text-slate-400 block mb-0.5">
                       {m.role === "user" ? "Tú" : "Asistente"}
                     </span>
-                    {m.role === "assistant"
-                      ? (m.content?.trim() ? (
-                          <span className="block whitespace-pre-wrap text-left">{m.content}</span>
-                        ) : showLoadingInBubble ? (
-                          <span className="text-slate-400 italic">Pensando...</span>
-                        ) : !isLoading ? (
-                          "No se recibió respuesta. Añade medicamentos en el panel o prueba de nuevo."
-                        ) : null)
-                      : m.content}
+                    {m.role === "assistant" ? (
+                      m.content?.trim() ? (
+                        <span className="block whitespace-pre-wrap text-left">
+                          {m.content}
+                        </span>
+                      ) : showLoadingInBubble ? (
+                        <span className="text-slate-400 italic">
+                          Pensando...
+                        </span>
+                      ) : !isLoading ? (
+                        "No se recibió respuesta. Prueba de nuevo en unos segundos."
+                      ) : null
+                    ) : (
+                      m.content
+                    )}
                   </li>
                 );
               })}
             </ul>
             {error && (
               <p className="text-red-400 text-sm mt-2">
-                {error.message || "Error al conectar. Comprueba la conexión o prueba más tarde."}
+                {error.message ||
+                  "Error al conectar. Comprueba la conexión o prueba más tarde."}
               </p>
             )}
           </div>

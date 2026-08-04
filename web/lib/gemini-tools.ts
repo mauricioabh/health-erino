@@ -34,16 +34,32 @@ export function createMedicamentosTools(userId: string) {
   return {
     get_medicamentos: tool({
       description:
-        "Lista todos los medicamentos del usuario. Incluye nombre, descripcion, fecha_caducidad, stock y si ya caducó.",
-      parameters: z.object({}),
-      execute: async (_: Record<string, never>) => {
+        "Lista todos los medicamentos del usuario. Incluye nombre, descripcion, fecha_caducidad, stock y si ya caducó. Llama a esta tool siempre que pregunten qué pueden tomar para un síntoma.",
+      // Gemini rejects tools with empty parameter objects (z.object({})).
+      parameters: z.object({
+        incluir_caducados: z
+          .boolean()
+          .optional()
+          .describe(
+            "Si es false, omite medicamentos caducados. Por defecto true (incluye todos).",
+          ),
+      }),
+      execute: async ({
+        incluir_caducados,
+      }: {
+        incluir_caducados?: boolean;
+      }) => {
         const data = (await sql`
           select id, nombre, descripcion, fecha_caducidad, stock
           from public.medicamentos
           where user_id = ${userId}
           order by nombre
         `) as MedicamentoToolRow[];
-        return data.map(normalizeRow);
+        const rows = data.map(normalizeRow);
+        if (incluir_caducados === false) {
+          return rows.filter((row) => !row.caducado);
+        }
+        return rows;
       },
     }),
     search_medicamento_by_name: tool({
@@ -72,9 +88,9 @@ export const SYSTEM_PROMPT = `Eres un asistente médico doméstico profesional. 
 
 Reglas obligatorias:
 - NUNCA recomiendes medicamentos que no estén en la base de datos. Todas las recomendaciones deben ser exclusivamente de lo que devuelvan get_medicamentos o search_medicamento_by_name.
-- Cuando pregunten qué pueden tomar para un síntoma (dolor de cabeza, fiebre, etc.), SIEMPRE llama primero a get_medicamentos para obtener la lista completa. Si la lista está VACÍA, responde con un mensaje claro: "Aún no tienes medicamentos en tu lista. Añade algunos desde el panel de administración para que pueda recomendarte según lo que tengas guardado." Si hay medicamentos adecuados, preséntalos con el formato que se indica más abajo.
+- Cuando pregunten qué pueden tomar para un síntoma (dolor de panza/estómago, dolor de cabeza, fiebre, etc.), SIEMPRE llama primero a get_medicamentos (puedes pasar incluir_caducados=true) para obtener la lista completa. Si la lista está VACÍA, responde con un mensaje claro: "Aún no tienes medicamentos en tu lista. Añade algunos desde el panel de administración para que pueda recomendarte según lo que tengas guardado." Si hay medicamentos adecuados, preséntalos con el formato que se indica más abajo.
 - Si en su lista hay medicamentos pero ninguno es adecuado para el síntoma, dilo claramente y no sugieras otros que no tengan guardados.
-- NUNCA dejes la respuesta en blanco. Responde SIEMPRE con al menos una frase completa.
+- Tras usar cualquier tool, DEBES escribir siempre una respuesta de texto al usuario. NUNCA dejes la respuesta en blanco. Responde SIEMPRE con al menos una frase completa.
 
 Formato obligatorio cuando recomiendes uno o más medicamentos:
 
