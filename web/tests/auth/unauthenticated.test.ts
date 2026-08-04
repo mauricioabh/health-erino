@@ -30,6 +30,12 @@ vi.mock("@/lib/gemini-tools", () => ({
   SYSTEM_PROMPT: "test",
 }));
 
+vi.mock("@/lib/chat/inventory-context", () => ({
+  loadUserMedicamentosInventory: vi.fn(async () => []),
+  buildChatSystemPrompt: vi.fn(() => "test system"),
+  formatInventoryForPrompt: vi.fn(() => ""),
+}));
+
 vi.mock("@/lib/langfuse", () => ({
   flushLangfuse: vi.fn(),
   getLangfuse: vi.fn(() => null),

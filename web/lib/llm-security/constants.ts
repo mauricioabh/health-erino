@@ -11,11 +11,15 @@ export const GEMINI_CHAT_MODEL =
 export const MAX_OUTPUT_TOKENS_CHAT = 1024;
 export const MAX_OUTPUT_TOKENS_CLASSIFIER = 256;
 export const MAX_OUTPUT_TOKENS_ENRICH = 2048;
-/** Enough for get_medicamentos (+ optional search) and a final text reply. */
+/** Kept for legacy tool-calling paths; chat no longer uses Gemini tools. */
 export const MAX_TOOL_STEPS = 5;
 
 export const EMPTY_ASSISTANT_FALLBACK =
   "No pude generar una recomendación esta vez. Comprueba que tengas medicamentos en tu panel e inténtalo de nuevo.";
+
+/** Shown in chat when Gemini/provider fails; never leak raw API errors to the UI. */
+export const FRIENDLY_CHAT_ERROR =
+  "Hubo un problema al consultar el asistente. Intenta de nuevo en unos segundos.";
 
 export const REJECTION_MESSAGES = {
   EMERGENCY:
