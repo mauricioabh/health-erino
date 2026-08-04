@@ -5,6 +5,7 @@ import {
   getMedicamentosFiltered,
   getMedicamentosCount,
 } from "@/lib/db/medicamentos";
+import { toDateString } from "@/lib/format-date";
 import { AdminSyncButton } from "./sync-button";
 import { DownloadTemplateButton } from "./download-template-button";
 import { NuevoMedicamentoModal } from "./nuevo-medicamento-modal";
@@ -14,13 +15,6 @@ import type { Medicamento } from "@/lib/types";
 import type { CaducidadFilter } from "@/lib/db/medicamentos";
 
 export const dynamic = "force-dynamic";
-
-function toDateString(v: unknown): string | null {
-  if (v == null) return null;
-  if (v instanceof Date) return v.toISOString().slice(0, 10);
-  if (typeof v === "string") return v || null;
-  return null;
-}
 
 export default async function AdminPage({
   searchParams,

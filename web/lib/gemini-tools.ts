@@ -1,28 +1,31 @@
 import { sql } from "@/lib/db/neon";
 import { tool } from "ai";
 import { z } from "zod";
+import { isCaducado, localTodayString, toDateString } from "@/lib/format-date";
 import { MAX_SEARCH_NOMBRE_CHARS } from "@/lib/llm-security/constants";
 import { sanitizeMedicamentoFields } from "@/lib/llm-security/sanitize-untrusted-fields";
 
 export { MAX_TOOL_STEPS } from "@/lib/llm-security/constants";
 export { SYSTEM_PROMPT } from "@/lib/llm-security/prompts";
 
-const today = new Date().toISOString().slice(0, 10);
-
 type MedicamentoToolRow = {
   id: string;
   nombre: string;
   descripcion: string | null;
-  fecha_caducidad: string | null;
+  fecha_caducidad: unknown;
   stock: number;
 };
 
 function normalizeRow(row: MedicamentoToolRow) {
-  const sanitized = sanitizeMedicamentoFields(row);
+  const fecha = toDateString(row.fecha_caducidad);
+  const sanitized = sanitizeMedicamentoFields({
+    ...row,
+    fecha_caducidad: fecha,
+  });
   return {
     ...sanitized,
-    caducado:
-      sanitized.fecha_caducidad != null && sanitized.fecha_caducidad < today,
+    fecha_caducidad: fecha,
+    caducado: isCaducado(fecha, localTodayString()),
   };
 }
 
