@@ -19,7 +19,7 @@
   },
   "dependencies": {
     "@ai-sdk/google": "^1.0.0",
-    "@clerk/nextjs": "^6.0.0",
+    "@clerk/nextjs": "^7.5.19",
     "@neondatabase/serverless": "^0.10.0",
     "@sentry/nextjs": "^10.57.0",
     "@serwist/next": "^9.5.11",
