@@ -3,7 +3,7 @@
 import { useChat } from "ai/react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { SparklesIcon } from "./sparkles-icon";
-import { X } from "lucide-react";
+import { Volume2, VolumeX, X } from "lucide-react";
 
 function friendlyChatError(message: string | undefined): string {
   const raw = message?.trim() ?? "";
@@ -30,33 +30,41 @@ export function ChatSidebarTrigger() {
       api: "/api/chat",
     });
   const [listening, setListening] = useState(false);
+  const [speakingId, setSpeakingId] = useState<string | null>(null);
+  const [ttsSupported, setTtsSupported] = useState(false);
   const recognitionRef = useRef<{
     start(): void;
     stop(): void;
     lang?: string;
   } | null>(null);
-  const lastSpokenIdRef = useRef<string>("");
 
-  const speak = useCallback((text: string) => {
+  useEffect(() => {
+    setTtsSupported(
+      typeof window !== "undefined" && "speechSynthesis" in window,
+    );
+  }, []);
+
+  const stopSpeaking = useCallback(() => {
     if (typeof window === "undefined") return;
+    window.speechSynthesis.cancel();
+    setSpeakingId(null);
+  }, []);
+
+  const speak = useCallback((id: string, text: string) => {
+    if (typeof window === "undefined" || !("speechSynthesis" in window)) {
+      return;
+    }
     window.speechSynthesis.cancel();
     const u = new SpeechSynthesisUtterance(text);
     u.lang = "es-ES";
     u.rate = 0.95;
+    u.onend = () =>
+      setSpeakingId((current) => (current === id ? null : current));
+    u.onerror = () =>
+      setSpeakingId((current) => (current === id ? null : current));
+    setSpeakingId(id);
     window.speechSynthesis.speak(u);
   }, []);
-
-  const lastAssistant = messages.filter((m) => m.role === "assistant").pop();
-  useEffect(() => {
-    if (
-      lastAssistant?.content &&
-      !isLoading &&
-      lastAssistant.id !== lastSpokenIdRef.current
-    ) {
-      lastSpokenIdRef.current = lastAssistant.id;
-      speak(lastAssistant.content);
-    }
-  }, [lastAssistant?.id, lastAssistant?.content, isLoading, speak]);
 
   const startListening = useCallback(() => {
     if (typeof window === "undefined") return;
@@ -112,6 +120,14 @@ export function ChatSidebarTrigger() {
       recognitionRef.current = null;
     }
     setListening(false);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (typeof window !== "undefined" && "speechSynthesis" in window) {
+        window.speechSynthesis.cancel();
+      }
+    };
   }, []);
 
   return (
@@ -184,6 +200,12 @@ export function ChatSidebarTrigger() {
                   isLastAssistant &&
                   isLoading &&
                   !m.content?.trim();
+                const canSpeak =
+                  ttsSupported &&
+                  m.role === "assistant" &&
+                  Boolean(m.content?.trim()) &&
+                  !showLoadingInBubble;
+                const isSpeaking = speakingId === m.id;
                 return (
                   <li
                     key={m.id}
@@ -193,9 +215,32 @@ export function ChatSidebarTrigger() {
                         : "mr-4 bg-slate-800/90 border border-white/10 text-slate-200"
                     }`}
                   >
-                    <span className="text-[11px] font-medium text-slate-400 block mb-0.5">
-                      {m.role === "user" ? "Tú" : "Asistente"}
-                    </span>
+                    <div className="flex items-center justify-between gap-2 mb-0.5">
+                      <span className="text-[11px] font-medium text-slate-400">
+                        {m.role === "user" ? "Tú" : "Asistente"}
+                      </span>
+                      {canSpeak && (
+                        <button
+                          type="button"
+                          onClick={() =>
+                            isSpeaking ? stopSpeaking() : speak(m.id, m.content)
+                          }
+                          className="rounded p-1 text-slate-400 hover:bg-white/10 hover:text-white transition-colors"
+                          title={isSpeaking ? "Detener lectura" : "Escuchar"}
+                          aria-label={
+                            isSpeaking
+                              ? "Detener lectura"
+                              : "Escuchar respuesta"
+                          }
+                        >
+                          {isSpeaking ? (
+                            <VolumeX className="h-3.5 w-3.5" />
+                          ) : (
+                            <Volume2 className="h-3.5 w-3.5" />
+                          )}
+                        </button>
+                      )}
+                    </div>
                     {m.role === "assistant" ? (
                       m.content?.trim() ? (
                         <span className="block whitespace-pre-wrap text-left">

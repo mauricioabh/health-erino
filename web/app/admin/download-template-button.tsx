@@ -25,9 +25,10 @@ export function DownloadTemplateButton() {
       onClick={handleDownload}
       title="Descarga un CSV con las cabeceras: nombre, descripcion, fecha_caducidad, stock. El nombre del archivo puede ser cualquiera."
       aria-label="Descargar plantilla CSV"
-      className="flex flex-1 md:flex-none items-center justify-center gap-1.5 rounded-md bg-emerald-600 px-2 py-2 md:px-3 md:py-1.5 text-sm text-white hover:bg-emerald-500 transition-colors"
+      className="flex flex-1 md:flex-none items-center justify-center gap-1 rounded-md bg-emerald-600 px-2 py-2 md:gap-1.5 md:px-3 md:py-1.5 text-xs md:text-sm text-white hover:bg-emerald-500 transition-colors"
     >
       <Download className="h-4 w-4 md:h-3.5 md:w-3.5 shrink-0" />
+      <span className="md:hidden font-medium">Template</span>
       <span className="hidden md:inline">Descargar plantilla</span>
     </button>
   );

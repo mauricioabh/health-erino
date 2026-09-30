@@ -58,9 +58,10 @@ export function NuevoMedicamentoModal() {
         onClick={() => setOpen(true)}
         aria-label="Nuevo medicamento"
         title="Nuevo medicamento"
-        className="flex flex-1 md:flex-none items-center justify-center gap-1.5 rounded-md bg-indigo-600 px-2 py-2 md:px-3 md:py-1.5 text-sm text-white font-medium hover:bg-indigo-500 transition-colors"
+        className="flex flex-1 md:flex-none items-center justify-center gap-1 rounded-md bg-indigo-600 px-2 py-2 md:gap-1.5 md:px-3 md:py-1.5 text-xs md:text-sm text-white font-medium hover:bg-indigo-500 transition-colors"
       >
         <Plus className="h-4 w-4 md:h-3.5 md:w-3.5 shrink-0" />
+        <span className="md:hidden">New</span>
         <span className="hidden md:inline">Nuevo medicamento</span>
       </button>
 
